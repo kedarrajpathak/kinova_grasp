@@ -1,0 +1,15 @@
+{
+    "image": "kinova_gen3_7dof:main",
+    "name": "Kinova Gen3 7DOF",
+    "features": { 
+        "ghcr.io/devcontainers/features/github-cli": {} 
+    },
+    "customizations": {
+        "vscode": {
+          "extensions": [
+            "ms-python.python",
+            "ms-vscode.cpptools-extension-pack"
+        ]
+        }
+      }
+  }

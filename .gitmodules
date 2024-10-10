@@ -1,0 +1,3 @@
+[submodule "colcon_ws/src/ros2_kortex_vision"]
+	path = colcon_ws/src/ros2_kortex_vision
+	url = https://github.com/PickNikRobotics/ros2_kortex_vision.git
