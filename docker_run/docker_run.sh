@@ -20,7 +20,7 @@ docker run \
 		--env RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION} \
 		--env DISPLAY=$DISPLAY \
         --name ros2-kortex \
-        -v "$REPO_DIR:/docker-base-image-ros:rw" \
-        -w /docker-base-image-ros \
+        -v "$REPO_DIR:/kinova-ros2:rw" \
+        -w /kinova-ros2 \
         kinova_gen3_7dof:main \
         bash

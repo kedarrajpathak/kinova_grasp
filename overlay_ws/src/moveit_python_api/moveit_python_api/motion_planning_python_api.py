@@ -64,8 +64,8 @@ def main():
     logger = get_logger("moveit_py.pose_goal")
 
     # instantiate MoveItPy instance and get planning component
-    panda = MoveItPy(node_name="moveit_py")
-    panda_arm = panda.get_planning_component("panda_arm")
+    kinova = MoveItPy(node_name="moveit_py")
+    kinova_arm = kinova.get_planning_component("manipulator")
     logger.info("MoveItPy instance created")
 
     ###########################################################################
@@ -73,83 +73,83 @@ def main():
     ###########################################################################
 
     # set plan start state using predefined state
-    panda_arm.set_start_state(configuration_name="ready")
+    kinova_arm.set_start_state(configuration_name="Home")
 
     # set pose goal using predefined state
-    panda_arm.set_goal_state(configuration_name="extended")
+    kinova_arm.set_goal_state(configuration_name="Retract")
 
     # plan to goal
-    plan_and_execute(panda, panda_arm, logger, sleep_time=3.0)
+    plan_and_execute(kinova, kinova_arm, logger, sleep_time=3.0)
 
     ###########################################################################
     # Plan 3 - set goal state with PoseStamped message
     ###########################################################################
 
     # set plan start state to current state
-    panda_arm.set_start_state_to_current_state()
+    kinova_arm.set_start_state_to_current_state()
 
     # set pose goal with PoseStamped message
     from geometry_msgs.msg import PoseStamped
 
     pose_goal = PoseStamped()
-    pose_goal.header.frame_id = "panda_link0"
+    pose_goal.header.frame_id = "base_link"
     pose_goal.pose.orientation.w = 1.0
-    pose_goal.pose.position.x = 0.28
-    pose_goal.pose.position.y = -0.2
-    pose_goal.pose.position.z = 0.5
-    panda_arm.set_goal_state(pose_stamped_msg=pose_goal, pose_link="panda_link8")
+    pose_goal.pose.position.x = 0.3
+    pose_goal.pose.position.y = 0.3
+    pose_goal.pose.position.z = 0.3
+    kinova_arm.set_goal_state(pose_stamped_msg=pose_goal, pose_link="end_effector_link")
 
     # plan to goal
-    plan_and_execute(panda, panda_arm, logger, sleep_time=3.0)
+    plan_and_execute(kinova, kinova_arm, logger, sleep_time=3.0)
 
     ###########################################################################
     # Plan 4 - set goal state with constraints
     ###########################################################################
 
     # set plan start state to current state
-    panda_arm.set_start_state_to_current_state()
+    kinova_arm.set_start_state_to_current_state()
 
     # set constraints message
     from moveit.core.kinematic_constraints import construct_joint_constraint
 
     joint_values = {
-        "panda_joint1": -1.0,
-        "panda_joint2": 0.7,
-        "panda_joint3": 0.7,
-        "panda_joint4": -1.5,
-        "panda_joint5": -0.7,
-        "panda_joint6": 2.0,
-        "panda_joint7": 0.0,
+        "joint1": 0,
+        "joint2": 0.26,
+        "joint3": 3.14,
+        "joint4": -2.27,
+        "joint5": 0,
+        "joint6": 0.96,
+        "joint7": 1.57,
     }
     robot_state.joint_positions = joint_values
     joint_constraint = construct_joint_constraint(
         robot_state=robot_state,
-        joint_model_group=panda.get_robot_model().get_joint_model_group("panda_arm"),
+        joint_model_group=kinova.get_robot_model().get_joint_model_group("kinova_arm"),
     )
-    panda_arm.set_goal_state(motion_plan_constraints=[joint_constraint])
+    kinova_arm.set_goal_state(motion_plan_constraints=[joint_constraint])
 
     # plan to goal
-    plan_and_execute(panda, panda_arm, logger, sleep_time=3.0)
+    plan_and_execute(kinova, kinova_arm, logger, sleep_time=3.0)
 
     ###########################################################################
     # Plan 5 - Planning with Multiple Pipelines simultaneously
     ###########################################################################
 
     # set plan start state to current state
-    panda_arm.set_start_state_to_current_state()
+    kinova_arm.set_start_state_to_current_state()
 
     # set pose goal with PoseStamped message
-    panda_arm.set_goal_state(configuration_name="ready")
+    kinova_arm.set_goal_state(configuration_name="Retract")
 
     # initialise multi-pipeline plan request parameters
     multi_pipeline_plan_request_params = MultiPipelinePlanRequestParameters(
-        panda, ["ompl_rrtc", "pilz_lin", "chomp_planner"]
+        kinova, ["ompl_rrtc", "pilz_lin", "chomp_planner"]
     )
 
     # plan to goal
     plan_and_execute(
-        panda,
-        panda_arm,
+        kinova,
+        kinova_arm,
         logger,
         multi_plan_parameters=multi_pipeline_plan_request_params,
         sleep_time=3.0,

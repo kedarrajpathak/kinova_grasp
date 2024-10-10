@@ -35,11 +35,8 @@ RUN rosdep update
 RUN rosdep install --from-paths src --ignore-src -r -y
 
 # Source and build colcon_ws
-RUN source /opt/ros/humble/setup.bash && colcon build --symlink-install
-
-# install moveit config for the arm
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y ros-$ROS_DISTRO-kinova-gen3-7dof-robotiq-2f-85-moveit-config
+RUN source /opt/ros/humble/setup.bash && colcon build 
+#--symlink-install
 
 # Copy overlay_ws to docker image
 COPY overlay_ws/src/ /overlay_ws/src/
@@ -50,4 +47,5 @@ RUN rosdep update
 RUN rosdep install --from-paths src --ignore-src -r -y 
 
 # Source and build overlay_ws
-RUN source /colcon_ws/install/setup.bash && colcon build --symlink-install
+RUN source /colcon_ws/install/setup.bash && colcon build 
+#--symlink-install
