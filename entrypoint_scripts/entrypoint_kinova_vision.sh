@@ -13,6 +13,6 @@ source /overlay_ws/install/setup.bash
 ros2 launch kinova_vision kinova_vision.launch.py \
     device:=10.20.0.100 \
     depth_registration:=true \
-    launch_depth:=false \
-    color_camera_info_url:=file:///home/user/custom_color_calib_1280x720.ini \
-    depth_camera_info_url:=file:///home/user/custom_depth_calib_480x270.ini 
+    launch_depth:=false 
+    # color_camera_info_url:=file:///home/user/custom_color_calib_1280x720.ini \
+    # depth_camera_info_url:=file:///home/user/custom_depth_calib_480x270.ini 

@@ -74,7 +74,7 @@ def main():
     gen3_manipulator.set_goal_state(configuration_name="Home")
 
     # plan to goal
-    plan_and_execute(gen3, gen3_manipulator, logger, sleep_time=3.0)
+    plan_and_execute(gen3, gen3_manipulator, logger, sleep_time=10.0)
 
     ###########################################################################
     # Plan 2 - set goal state with RobotState object
@@ -95,7 +95,7 @@ def main():
     gen3_manipulator.set_goal_state(robot_state=robot_state)
 
     # plan to goal
-    plan_and_execute(gen3, gen3_manipulator, logger, sleep_time=3.0)
+    plan_and_execute(gen3, gen3_manipulator, logger, sleep_time=10.0)
 
     ###########################################################################
     # Plan 3 - set goal state with PoseStamped message
@@ -116,7 +116,7 @@ def main():
     gen3_manipulator.set_goal_state(pose_stamped_msg=pose_goal, pose_link="end_effector_link")
 
     # plan to goal
-    plan_and_execute(gen3, gen3_manipulator, logger, sleep_time=3.0)
+    plan_and_execute(gen3, gen3_manipulator, logger, sleep_time=10.0)
 
     ###########################################################################
     # Plan 4 - set goal state with constraints
@@ -129,13 +129,13 @@ def main():
     from moveit.core.kinematic_constraints import construct_joint_constraint
 
     joint_values = {
-        "joint1": -1.0,
-        "joint2": 0.7,
-        "joint3": 0.7,
-        "joint4": -1.5,
-        "joint5": -0.7,
-        "joint6": 2.0,
-        "joint7": 0.0,
+        "joint_1": -1.0,
+        "joint_2": 0.7,
+        "joint_3": 0.7,
+        "joint_4": -1.5,
+        "joint_5": -0.7,
+        "joint_6": 2.0,
+        "joint_7": 0.0,
     }
     robot_state.joint_positions = joint_values
     joint_constraint = construct_joint_constraint(
@@ -145,7 +145,7 @@ def main():
     gen3_manipulator.set_goal_state(motion_plan_constraints=[joint_constraint])
 
     # plan to goal
-    plan_and_execute(gen3, gen3_manipulator, logger, sleep_time=3.0)
+    plan_and_execute(gen3, gen3_manipulator, logger, sleep_time=10.0)
 
     ###########################################################################
     # Plan 5 - Planning with Multiple Pipelines simultaneously
@@ -168,7 +168,7 @@ def main():
         gen3_manipulator,
         logger,
         multi_plan_parameters=multi_pipeline_plan_request_params,
-        sleep_time=3.0,
+        sleep_time=10.0,
     )
 
 

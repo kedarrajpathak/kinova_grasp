@@ -2,3 +2,6 @@
 	path = colcon_ws/src/moveit2
 	url = https://github.com/moveit/moveit2.git
 	branch = iron
+[submodule "overlay_ws/src/ros2_kortex_vision"]
+	path = overlay_ws/src/ros2_kortex_vision
+	url = https://github.com/PickNikRobotics/ros2_kortex_vision.git

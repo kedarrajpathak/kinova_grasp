@@ -1,1 +1,1 @@
-docker build $1 -t kinova_gen3_7dof:main -f Dockerfile2  .
+docker build $1 -t kinova_gen3_7dof:main -f Dockerfile  .
