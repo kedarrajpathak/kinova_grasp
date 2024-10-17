@@ -1,3 +1,4 @@
-[submodule "colcon_ws/src/ros2_kortex_vision"]
-	path = colcon_ws/src/ros2_kortex_vision
-	url = https://github.com/PickNikRobotics/ros2_kortex_vision.git
+[submodule "colcon_ws/src/moveit2"]
+	path = colcon_ws/src/moveit2
+	url = https://github.com/moveit/moveit2.git
+	branch = iron

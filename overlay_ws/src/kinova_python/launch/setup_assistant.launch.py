@@ -1,4 +1,4 @@
-# Copyright 2015 Open Source Robotics Foundation, Inc.
+# Copyright (c) 2023 PickNik, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ament_copyright.main import main
-import pytest
+
+from moveit_configs_utils import MoveItConfigsBuilder
+from moveit_configs_utils.launches import generate_setup_assistant_launch
 
 
-# Remove the `skip` decorator once the source file(s) have a copyright header
-@pytest.mark.skip(reason='No copyright header has been placed in the generated source file.')
-@pytest.mark.copyright
-@pytest.mark.linter
-def test_copyright():
-    rc = main(argv=['.', 'test'])
-    assert rc == 0, 'Found errors'
+def generate_launch_description():
+    moveit_config = MoveItConfigsBuilder(
+        "gen3", package_name="kinova_gen3_7dof_robotiq_2f_85_moveit_config"
+    ).to_moveit_configs()
+    return generate_setup_assistant_launch(moveit_config)

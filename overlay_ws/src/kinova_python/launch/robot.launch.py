@@ -1,4 +1,3 @@
-
 # Copyright (c) 2023 PickNik, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,20 +70,6 @@ def launch_setup(context, *args, **kwargs):
             moveit_config.to_dict(),
         ],
     )
-    example_file = DeclareLaunchArgument(
-        "example_file",
-        default_value="motion_planning_python_api.py",
-        description="Python API tutorial file name",
-    )
-
-    moveit_py_node = Node(
-        name="moveit_py",
-        package="moveit_python_api",
-        executable=LaunchConfiguration("example_file"),
-        output="both",
-        parameters=[moveit_config.to_dict()],
-    )
-
 
     # Static TF
     static_tf = Node(
@@ -188,7 +173,6 @@ def launch_setup(context, *args, **kwargs):
     )
 
     nodes_to_start = [
-        example_file,
         ros2_control_node,
         robot_state_publisher,
         joint_state_broadcaster_spawner,
@@ -199,7 +183,6 @@ def launch_setup(context, *args, **kwargs):
         fault_controller_spawner,
         move_group_node,
         static_tf,
-        moveit_py_node,
     ]
 
     return nodes_to_start
