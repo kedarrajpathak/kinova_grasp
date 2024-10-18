@@ -50,6 +50,9 @@ RUN apt-get update && \
         ros-${ROS_DISTRO}-kortex-bringup \
         ros-${ROS_DISTRO}-kinova-gen3-7dof-robotiq-2f-85-moveit-config 
 
+RUN apt-get install gstreamer1.0-tools gstreamer1.0-libav libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-base -y
+RUN apt-get install ros-${ROS_DISTRO}-depth-image-proc -y
+
 # Copy overlay_ws to docker image
 COPY overlay_ws/src/ /overlay_ws/src/
 
@@ -59,4 +62,5 @@ RUN apt-get update && rosdep update
 RUN rosdep install --from-paths src --ignore-src -r -y
 
 # Source and build overlay_ws
-RUN source /colcon_ws/install/setup.bash && colcon build
+RUN source /colcon_ws/install/setup.bash && colcon build 
+#--symlink-install
