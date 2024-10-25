@@ -47,6 +47,8 @@ def plan_and_execute(
     else:
         logger.error("Planning failed")
 
+    logger.info("# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #")
+
     time.sleep(sleep_time)
 
 
@@ -61,6 +63,7 @@ def main():
     # instantiate MoveItPy instance and get planning component
     gen3 = MoveItPy(node_name="moveit_py")
     gen3_manipulator = gen3.get_planning_component("manipulator")
+    gen3_gripper = gen3.get_planning_component("gripper")
     logger.info("MoveItPy instance created")
 
     ###########################################################################
@@ -68,13 +71,33 @@ def main():
     ###########################################################################
 
     # set plan start state using predefined state
-    gen3_manipulator.set_start_state(configuration_name="Vertical")
+    gen3_manipulator.set_start_state(configuration_name="vertical")
 
     # set pose goal using predefined state
-    gen3_manipulator.set_goal_state(configuration_name="Home")
+    gen3_manipulator.set_goal_state(configuration_name="home")
 
     # plan to goal
     plan_and_execute(gen3, gen3_manipulator, logger, sleep_time=10.0)
+
+    # set plan start state using predefined state
+    gen3_gripper.set_start_state_to_current_state()
+    # gen3_gripper.set_start_state(configuration_name="Open")
+
+    # set pose goal using predefined state
+    gen3_gripper.set_goal_state(configuration_name="Close")
+
+    # plan to goal
+    plan_and_execute(gen3, gen3_gripper, logger, sleep_time=10.0)
+
+    # set plan start state using predefined state
+    # gen3_gripper.set_start_state_to_current_state()
+    gen3_gripper.set_start_state(configuration_name="Close")
+
+    # set pose goal using predefined state
+    gen3_gripper.set_goal_state(configuration_name="Open")
+
+    # plan to goal
+    plan_and_execute(gen3, gen3_gripper, logger, sleep_time=10.0)
 
     ###########################################################################
     # Plan 2 - set goal state with RobotState object
@@ -155,7 +178,7 @@ def main():
     gen3_manipulator.set_start_state_to_current_state()
 
     # set pose goal with PoseStamped message
-    gen3_manipulator.set_goal_state(configuration_name="Retract")
+    gen3_manipulator.set_goal_state(configuration_name="retract")
 
     # initialise multi-pipeline plan request parameters
     multi_pipeline_plan_request_params = MultiPipelinePlanRequestParameters(

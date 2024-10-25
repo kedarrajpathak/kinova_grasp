@@ -19,8 +19,8 @@ docker run \
 		-v /tmp/.X11-unix:/tmp/.X11-unix \
 		--env RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION} \
 		--env DISPLAY=$DISPLAY \
-        --name ros2-kortex \
+        --name kinova_mtc \
         -v "$REPO_DIR:/kinova-ros2:rw" \
         -w /kinova-ros2 \
         kinova_gen3_7dof:main \
-        /kinova-ros2/entrypoint_scripts/entrypoint.sh
+        /kinova-ros2/entrypoint_scripts/entrypoint_kinova_mtc.sh

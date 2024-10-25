@@ -10,8 +10,6 @@ source /colcon_ws/install/setup.bash
 source /overlay_ws/install/setup.bash
 
 # Run additional commands
-ros2 launch kinova_python kinova_python.launch.py \
+ros2 launch moveit_task_constructor_kinova kinova_mtc.launch.py \
   robot_ip:=yyy.yyy.yyy.yyy \
-  use_fake_hardware:=true
-  # robot_ip:=192.168.1.10 \
-  # use_fake_hardware:=false
+  use_fake_hardware:=true --debug
