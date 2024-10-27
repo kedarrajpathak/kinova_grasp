@@ -48,7 +48,8 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y \
         ros-${ROS_DISTRO}-kortex-bringup \
-        ros-${ROS_DISTRO}-kinova-gen3-7dof-robotiq-2f-85-moveit-config 
+        ros-${ROS_DISTRO}-kinova-gen3-7dof-robotiq-2f-85-moveit-config \
+        ros-${ROS_DISTRO}-tf-transformations
 
 RUN apt-get install gstreamer1.0-tools gstreamer1.0-libav libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-base -y
 RUN apt-get install ros-${ROS_DISTRO}-depth-image-proc -y

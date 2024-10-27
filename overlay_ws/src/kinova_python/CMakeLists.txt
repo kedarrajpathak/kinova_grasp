@@ -9,7 +9,10 @@ install(PROGRAMS
   scripts/kinova_python.py
   DESTINATION lib/${PROJECT_NAME}
 )
-
+install(PROGRAMS
+  scripts/kinova_grasp.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 install(DIRECTORY config launch
 	DESTINATION share/${PROJECT_NAME}
 	)

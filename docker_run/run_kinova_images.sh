@@ -2,6 +2,7 @@
 
 SCRIPT_DIR="$(dirname $(readlink -f $0))"
 REPO_DIR="$(realpath "${SCRIPT_DIR}/..")"
+PARENT_DIR="$(realpath "${REPO_DIR}/..")"
 
 
 xhost +
@@ -21,6 +22,7 @@ docker run \
 		--env DISPLAY=$DISPLAY \
         --name kinova_images \
         -v "$REPO_DIR:/kinova-ros2:rw" \
+        -v $PARENT_DIR:/root/ws/kinova_repos:rw \
         -w /kinova-ros2 \
         kinova_gen3_7dof:main \
         /kinova-ros2/entrypoint_scripts/entrypoint_kinova_images.sh
