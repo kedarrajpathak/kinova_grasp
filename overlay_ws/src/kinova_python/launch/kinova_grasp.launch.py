@@ -20,8 +20,9 @@ from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
     RegisterEventHandler,
+    TimerAction,
 )
-from launch.event_handlers import OnProcessExit
+from launch.event_handlers import OnProcessStart, OnProcessExit
 from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
@@ -31,6 +32,7 @@ from moveit_configs_utils import MoveItConfigsBuilder
 def launch_setup(context, *args, **kwargs):
     # Initialize Arguments
     robot_ip = LaunchConfiguration("robot_ip")
+    vision = LaunchConfiguration("vision")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
     gripper_max_velocity = LaunchConfiguration("gripper_max_velocity")
     gripper_max_force = LaunchConfiguration("gripper_max_force")
@@ -40,6 +42,7 @@ def launch_setup(context, *args, **kwargs):
 
     launch_arguments = {
         "robot_ip": robot_ip,
+        "vision": vision,
         "use_fake_hardware": use_fake_hardware,
         "gripper": "robotiq_2f_85",
         "gripper_joint_name": "robotiq_85_left_knuckle_joint",
@@ -53,6 +56,12 @@ def launch_setup(context, *args, **kwargs):
         MoveItConfigsBuilder("gen3", package_name="kinova_gen3_7dof_robotiq_2f_85_moveit_config")
         .robot_description(mappings=launch_arguments)
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
+        .sensors_3d(
+            file_path=os.path.join(
+                get_package_share_directory("kinova_python"),
+                "config/sensors_3d.yaml",
+            )
+        )
         # .planning_scene_monitor(
         #     publish_robot_description=True, publish_robot_description_semantic=True
         # )
@@ -64,19 +73,19 @@ def launch_setup(context, *args, **kwargs):
         .to_moveit_configs()
     )
 
-    example_file = DeclareLaunchArgument(
-        "example_file",
-        default_value="kinova_grasp.py",
-        description="Python API tutorial file name",
-    )
+    # example_file = DeclareLaunchArgument(
+    #     "example_file",
+    #     default_value="kinova_grasp.py",
+    #     description="Python API tutorial file name",
+    # )
 
-    moveit_py_node = Node(
-        name="moveit_py",
-        package="kinova_python",
-        executable=LaunchConfiguration("example_file"),
-        output="both",
-        parameters=[moveit_config.to_dict()],
-    )
+    # moveit_py_node = Node(
+    #     name="moveit_py",
+    #     package="kinova_python",
+    #     executable=LaunchConfiguration("example_file"),
+    #     output="both",
+    #     parameters=[moveit_config.to_dict()],
+    # )
 
     moveit_config.moveit_cpp.update({"use_sim_time": use_sim_time.perform(context) == "true"})
 
@@ -89,6 +98,30 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
+    # MTC Demo node
+    pick_place = Node(
+        package="kinova_mtc",
+        executable="kinova_mtc",
+        output="screen",
+        parameters=[
+            moveit_config.to_dict(),
+        ],
+    )
+
+    # Timer action to delay the start of pick_place
+    delayed_pick_place = TimerAction(
+        period=7.0,  # Delay time in seconds
+        actions=[pick_place]
+    )
+
+    # Register the event handler to trigger delayed_pick_place when move_group_node starts
+    on_move_group_start_handler = RegisterEventHandler(
+        OnProcessStart(
+            target_action=move_group_node,
+            on_start=[delayed_pick_place]
+        )
+    )
+
     # Static TF
     static_tf = Node(
         package="tf2_ros",
@@ -96,15 +129,6 @@ def launch_setup(context, *args, **kwargs):
         name="static_transform_publisher",
         output="log",
         arguments=["--frame-id", "world", "--child-frame-id", "base_link"],
-    )
-
-    # Missing Static TF for the camera_joint
-    camera_static_tf = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
-        name="camera_static_transform_publisher",
-        output="log",
-        arguments=["0", "-0.06841", "-0.05044", "0", "1.7444444444444447", "-1.5708", "bracelet_link", "camera_link"],
     )
 
     # Publish TF
@@ -161,8 +185,8 @@ def launch_setup(context, *args, **kwargs):
 
     # rviz with moveit configuration
     rviz_config_file = (
-        get_package_share_directory("kinova_gen3_7dof_robotiq_2f_85_moveit_config")
-        + "/config/moveit.rviz"
+        get_package_share_directory("kinova_python")
+        + "/config/moveit_mtc.rviz"
     )
     rviz_node = Node(
         package="rviz2",
@@ -210,9 +234,9 @@ def launch_setup(context, *args, **kwargs):
         fault_controller_spawner,
         move_group_node,
         static_tf,
-        camera_static_tf,  # Add this new static TF node
-        example_file,
-        moveit_py_node,
+        # example_file,
+        # moveit_py_node,
+        on_move_group_start_handler,
     ]
 
     return nodes_to_start
@@ -227,6 +251,13 @@ def generate_launch_description():
             description="IP address by which the robot can be reached.",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "vision",
+            default_value="true",
+            description="Enable vision?",
+        )
+    )    
     declared_arguments.append(
         DeclareLaunchArgument(
             "use_fake_hardware",

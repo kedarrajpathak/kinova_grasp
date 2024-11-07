@@ -109,15 +109,6 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    # Missing Static TF for the camera_joint
-    camera_static_tf = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
-        name="camera_static_transform_publisher",
-        output="log",
-        arguments=["0", "-0.06841", "-0.05044", "0", "1.7444444444444447", "-1.5708", "bracelet_link", "camera_link"],
-    )
-
     # ros2_control using FakeSystem as hardware
     ros2_controllers_path = os.path.join(
         get_package_share_directory("kinova_gen3_7dof_robotiq_2f_85_moveit_config"),
@@ -210,7 +201,6 @@ def launch_setup(context, *args, **kwargs):
         fault_controller_spawner,
         move_group_node,
         static_tf,
-        camera_static_tf,  # Add this new static TF node
         example_file,
         moveit_py_node,
     ]
