@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(kinova_mtc)
+project(kinova_pick_place)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -10,18 +10,18 @@ find_package(ament_cmake REQUIRED)
 find_package(moveit_task_constructor_core REQUIRED)
 find_package(rclcpp REQUIRED)
 
-add_executable(kinova_mtc src/kinova_mtc.cpp)
-target_include_directories(kinova_mtc PUBLIC
+add_executable(kinova_pick_place src/kinova_pick_place.cpp)
+target_include_directories(kinova_pick_place PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_compile_features(kinova_mtc PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(kinova_pick_place PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(
-  kinova_mtc
+  kinova_pick_place
   "moveit_task_constructor_core"
   "rclcpp"
 )
 
-install(TARGETS kinova_mtc
+install(TARGETS kinova_pick_place
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

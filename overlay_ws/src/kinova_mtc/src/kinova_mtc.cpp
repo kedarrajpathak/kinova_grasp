@@ -109,21 +109,21 @@ void MTCTaskNode::doTask()
   return;
 }
 
-// Function to read pose from a file
-geometry_msgs::msg::PoseStamped readPoseFromFile(const std::string& file_path) 
-{
-    geometry_msgs::msg::PoseStamped pose;
-    std::ifstream file(file_path);
-    if (file.is_open()) {
-        file >> pose.header.frame_id;
-        file >> pose.pose.position.x >> pose.pose.position.y >> pose.pose.position.z;
-        file >> pose.pose.orientation.x >> pose.pose.orientation.y >> pose.pose.orientation.z >> pose.pose.orientation.w;
-        file.close();
-    } else {
-        throw std::runtime_error("Unable to open file for reading grasp pose.");
-    }
-    return pose;
-}
+// // Function to read pose from a file
+// geometry_msgs::msg::PoseStamped readPoseFromFile(const std::string& file_path) 
+// {
+//     geometry_msgs::msg::PoseStamped pose;
+//     std::ifstream file(file_path);
+//     if (file.is_open()) {
+//         file >> pose.header.frame_id;
+//         file >> pose.pose.position.x >> pose.pose.position.y >> pose.pose.position.z;
+//         file >> pose.pose.orientation.x >> pose.pose.orientation.y >> pose.pose.orientation.z >> pose.pose.orientation.w;
+//         file.close();
+//     } else {
+//         throw std::runtime_error("Unable to open file for reading grasp pose.");
+//     }
+//     return pose;
+// }
 
 mtc::Task MTCTaskNode::createTask()
 {
@@ -151,11 +151,13 @@ mtc::Task MTCTaskNode::createTask()
   task.add(std::move(stage_state_current));
 
   auto sampling_planner = std::make_shared<mtc::solvers::PipelinePlanner>(node_);
+  sampling_planner->setMaxVelocityScalingFactor(0.1);
+  sampling_planner->setMaxAccelerationScalingFactor(0.1);
   auto interpolation_planner = std::make_shared<mtc::solvers::JointInterpolationPlanner>();
 
   auto cartesian_planner = std::make_shared<mtc::solvers::CartesianPath>();
-  cartesian_planner->setMaxVelocityScalingFactor(1.0);
-  cartesian_planner->setMaxAccelerationScalingFactor(1.0);
+  cartesian_planner->setMaxVelocityScalingFactor(0.1);
+  cartesian_planner->setMaxAccelerationScalingFactor(0.1);
   cartesian_planner->setStepSize(.01);
 
   auto stage_open_hand =
@@ -234,25 +236,25 @@ mtc::Task MTCTaskNode::createTask()
       grasp->insert(std::move(wrapper));
     }
 
-    {
-      // Read the grasp pose from the file (update the path accordingly)
-      geometry_msgs::msg::PoseStamped grasp_pose = readPoseFromFile("/root/ws/kinova_repos/kinova-transfer/predictions_rgbd_image.txt");
+    // {
+    //   // Read the grasp pose from the file (update the path accordingly)
+    //   geometry_msgs::msg::PoseStamped grasp_pose = readPoseFromFile("/root/ws/kinova_repos/kinova-transfer/predictions_rgbd_image.txt");
 
-      // Create the ComputeIK stage directly with the read pose
-      auto stage = std::make_unique<mtc::stages::FixedState>("set grasp pose");
-      stage->setState(grasp_pose);
+    //   // Create the ComputeIK stage directly with the read pose
+    //   auto stage = std::make_unique<mtc::stages::FixedState>("set grasp pose");
+    //   stage->setState(grasp_pose);
 
-      // Configure the IK computation
-      auto wrapper = std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
-      wrapper->setMaxIKSolutions(8);
-      wrapper->setMinSolutionDistance(1.0);
-      wrapper->setIKFrame(grasp_pose.header.frame_id);  // Set frame as read from the file
-      wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
-      wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
+    //   // Configure the IK computation
+    //   auto wrapper = std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
+    //   wrapper->setMaxIKSolutions(8);
+    //   wrapper->setMinSolutionDistance(1.0);
+    //   wrapper->setIKFrame(grasp_pose.header.frame_id);  // Set frame as read from the file
+    //   wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
+    //   wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
 
-      // Add the wrapper to the grasp container
-      grasp->insert(std::move(wrapper));
-    }
+    //   // Add the wrapper to the grasp container
+    //   grasp->insert(std::move(wrapper));
+    // }
 
     {
       // clang-format off
@@ -305,8 +307,8 @@ mtc::Task MTCTaskNode::createTask()
     // clang-format off
     auto stage_move_to_place = std::make_unique<mtc::stages::Connect>(
         "move to place",
-        mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, sampling_planner },
-                                                  { hand_group_name, sampling_planner } });
+        mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, sampling_planner } });
+                                                  // { hand_group_name, sampling_planner } });
     // clang-format on
     stage_move_to_place->setTimeout(5.0);
     stage_move_to_place->properties().configureInitFrom(mtc::Stage::PARENT);

@@ -73,6 +73,13 @@ def launch_setup(context, *args, **kwargs):
         .to_moveit_configs()
     )
 
+    octomap_config = {'octomap_frame': 'camera_rgb_optical_frame', 
+                      'octomap_resolution': 0.01,
+                      'max_range': 5.0}
+    
+    # Enable the execution of tasks in the MoveIt Task Constructor (MTC).
+    move_group_capabilities = {"capabilities": "move_group/ExecuteTaskSolutionCapability"}
+     
     # example_file = DeclareLaunchArgument(
     #     "example_file",
     #     default_value="kinova_grasp.py",
@@ -95,6 +102,8 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
         parameters=[
             moveit_config.to_dict(),
+            octomap_config,
+            move_group_capabilities,
         ],
     )
 

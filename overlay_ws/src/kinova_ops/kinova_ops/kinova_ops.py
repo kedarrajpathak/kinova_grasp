@@ -20,6 +20,7 @@ class KinovaOps(Node):
         self.depth_registered_image_sub = message_filters.Subscriber(self, Image, '/camera/depth_registered/image_rect')
         self.camera_info_sub = self.create_subscription(CameraInfo, '/camera/depth_registered/camera_info', 
                                                         self.camera_info_callback, 10)
+        self.publisher_ = self.create_publisher(PoseStamped, '/grasp_pose', 10)
 
         # Create TF2 buffer and listener for transformations
         self.tf_buffer = Buffer()
@@ -132,6 +133,7 @@ class KinovaOps(Node):
             # If transformed pose is available, save it to a JSON file
             transformed_pose = self.transform_pose(grasp_pose)
             if transformed_pose:
+                self.publisher_.publish(transformed_pose)
                 self.get_logger().info(f"Transformed Pose: {transformed_pose}")
                 save_transformed_pose_to_file(transformed_pose, '/root/ws/kinova_repos/kinova-transfer/transformed_pose.json')
 

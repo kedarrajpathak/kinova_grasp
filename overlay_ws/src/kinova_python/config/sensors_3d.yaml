@@ -4,6 +4,7 @@ camera_pointcloud:
     sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
     point_cloud_topic: /camera/depth/color/points
     max_range: 5.0
+    octomap_resolution: 0.02
     point_subsample: 1
     padding_offset: 0.1
     padding_scale: 1.0
