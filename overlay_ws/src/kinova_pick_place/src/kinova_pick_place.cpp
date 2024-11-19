@@ -131,6 +131,8 @@ private:
     task.add(std::move(stage_state_current));
 
     auto sampling_planner = std::make_shared<mtc::solvers::PipelinePlanner>(node_);
+    sampling_planner->setMaxVelocityScalingFactor(1.0);
+    sampling_planner->setMaxAccelerationScalingFactor(1.0);
     auto interpolation_planner = std::make_shared<mtc::solvers::JointInterpolationPlanner>();
 
     auto cartesian_planner = std::make_shared<mtc::solvers::CartesianPath>();
@@ -203,8 +205,7 @@ private:
 
         // Compute IK
         // clang-format off
-        auto wrapper =
-            std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
+        auto wrapper = std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
         // clang-format on
         wrapper->setMaxIKSolutions(8);
         wrapper->setMinSolutionDistance(1.0);
@@ -265,8 +266,7 @@ private:
       // clang-format off
       auto stage_move_to_place = std::make_unique<mtc::stages::Connect>(
           "move to place",
-          mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, sampling_planner },
-                                                    { hand_group_name, sampling_planner } });
+          mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, sampling_planner } });
       // clang-format on
       stage_move_to_place->setTimeout(5.0);
       stage_move_to_place->properties().configureInitFrom(mtc::Stage::PARENT);

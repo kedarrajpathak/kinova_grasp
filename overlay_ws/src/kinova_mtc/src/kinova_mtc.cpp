@@ -37,16 +37,30 @@ private:
   mtc::Task createTask();
   mtc::Task task_;
   rclcpp::Node::SharedPtr node_;
+  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr grasp_pose_subscriber_;
+  geometry_msgs::msg::PoseStamped current_grasp_pose_;
+
+  void graspPoseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
 };
 
 MTCTaskNode::MTCTaskNode(const rclcpp::NodeOptions& options)
   : node_{ std::make_shared<rclcpp::Node>("mtc_node", options) }
 {
+  grasp_pose_subscriber_ = node_->create_subscription<geometry_msgs::msg::PoseStamped>(
+    "/grasp_pose", 10, std::bind(&MTCTaskNode::graspPoseCallback, this, std::placeholders::_1));
+
 }
 
 rclcpp::node_interfaces::NodeBaseInterface::SharedPtr MTCTaskNode::getNodeBaseInterface()
 {
   return node_->get_node_base_interface();
+}
+
+void MTCTaskNode::graspPoseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
+{
+  current_grasp_pose_ = *msg;
+  setupPlanningScene();
+  doTask();
 }
 
 void MTCTaskNode::setupPlanningScene()
@@ -106,24 +120,10 @@ void MTCTaskNode::doTask()
     return;
   }
 
+  task_.clear();
+
   return;
 }
-
-// // Function to read pose from a file
-// geometry_msgs::msg::PoseStamped readPoseFromFile(const std::string& file_path) 
-// {
-//     geometry_msgs::msg::PoseStamped pose;
-//     std::ifstream file(file_path);
-//     if (file.is_open()) {
-//         file >> pose.header.frame_id;
-//         file >> pose.pose.position.x >> pose.pose.position.y >> pose.pose.position.z;
-//         file >> pose.pose.orientation.x >> pose.pose.orientation.y >> pose.pose.orientation.z >> pose.pose.orientation.w;
-//         file.close();
-//     } else {
-//         throw std::runtime_error("Unable to open file for reading grasp pose.");
-//     }
-//     return pose;
-// }
 
 mtc::Task MTCTaskNode::createTask()
 {
@@ -151,13 +151,13 @@ mtc::Task MTCTaskNode::createTask()
   task.add(std::move(stage_state_current));
 
   auto sampling_planner = std::make_shared<mtc::solvers::PipelinePlanner>(node_);
-  sampling_planner->setMaxVelocityScalingFactor(0.1);
-  sampling_planner->setMaxAccelerationScalingFactor(0.1);
+  sampling_planner->setMaxVelocityScalingFactor(1.0);
+  sampling_planner->setMaxAccelerationScalingFactor(1.0);
   auto interpolation_planner = std::make_shared<mtc::solvers::JointInterpolationPlanner>();
 
   auto cartesian_planner = std::make_shared<mtc::solvers::CartesianPath>();
-  cartesian_planner->setMaxVelocityScalingFactor(0.1);
-  cartesian_planner->setMaxAccelerationScalingFactor(0.1);
+  cartesian_planner->setMaxVelocityScalingFactor(1.0);
+  cartesian_planner->setMaxAccelerationScalingFactor(1.0);
   cartesian_planner->setStepSize(.01);
 
   auto stage_open_hand =
@@ -217,9 +217,19 @@ mtc::Task MTCTaskNode::createTask()
 
       // This is the transform from the object frame to the end-effector frame
       Eigen::Isometry3d grasp_frame_transform;
-      Eigen::Quaterniond q = Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitX()) *
-                             Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitY()) *
-                             Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ());
+
+      // Extract position from current_grasp_pose_
+      grasp_frame_transform.translation().x() = current_grasp_pose_.pose.position.x;
+      grasp_frame_transform.translation().y() = current_grasp_pose_.pose.position.y;
+      grasp_frame_transform.translation().z() = current_grasp_pose_.pose.position.z;
+
+      // Extract orientation from current_grasp_pose_
+      Eigen::Quaterniond q(
+          current_grasp_pose_.pose.orientation.w,
+          current_grasp_pose_.pose.orientation.x,
+          current_grasp_pose_.pose.orientation.y,
+          current_grasp_pose_.pose.orientation.z
+      );
       grasp_frame_transform.linear() = q.matrix();
       grasp_frame_transform.translation().z() = 0.15;
 
@@ -235,26 +245,6 @@ mtc::Task MTCTaskNode::createTask()
       wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
       grasp->insert(std::move(wrapper));
     }
-
-    // {
-    //   // Read the grasp pose from the file (update the path accordingly)
-    //   geometry_msgs::msg::PoseStamped grasp_pose = readPoseFromFile("/root/ws/kinova_repos/kinova-transfer/predictions_rgbd_image.txt");
-
-    //   // Create the ComputeIK stage directly with the read pose
-    //   auto stage = std::make_unique<mtc::stages::FixedState>("set grasp pose");
-    //   stage->setState(grasp_pose);
-
-    //   // Configure the IK computation
-    //   auto wrapper = std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
-    //   wrapper->setMaxIKSolutions(8);
-    //   wrapper->setMinSolutionDistance(1.0);
-    //   wrapper->setIKFrame(grasp_pose.header.frame_id);  // Set frame as read from the file
-    //   wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
-    //   wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
-
-    //   // Add the wrapper to the grasp container
-    //   grasp->insert(std::move(wrapper));
-    // }
 
     {
       // clang-format off
@@ -422,8 +412,8 @@ int main(int argc, char** argv)
     executor.remove_node(mtc_task_node->getNodeBaseInterface());
   });
 
-  mtc_task_node->setupPlanningScene();
-  mtc_task_node->doTask();
+  // mtc_task_node->setupPlanningScene();
+  // mtc_task_node->doTask();
 
   spin_thread->join();
   rclcpp::shutdown();

@@ -121,7 +121,7 @@ class KinovaOps(Node):
             quaternion = quaternion_from_matrix(best_grasp)
 
             grasp_pose = PoseStamped()
-            grasp_pose.header.frame_id = 'end_effector_link'
+            grasp_pose.header.frame_id = 'camera_link'
             grasp_pose.pose.position.x = float(position[0])
             grasp_pose.pose.position.y = float(position[1])
             grasp_pose.pose.position.z = float(position[2])
@@ -145,7 +145,7 @@ class KinovaOps(Node):
         try:
             transform = self.tf_buffer.lookup_transform(
                 'base_link', 
-                'end_effector_link', 
+                'camera_link', 
                 rclpy.time.Time()
             )
 
