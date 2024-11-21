@@ -120,7 +120,8 @@ void MTCTaskNode::doTask()
     return;
   }
 
-  task_.clear();
+  task_.reset();
+  task_.introspection().reset();
 
   return;
 }
@@ -212,7 +213,7 @@ mtc::Task MTCTaskNode::createTask()
       stage->properties().set("marker_ns", "grasp_pose");
       stage->setPreGraspPose("Open");
       stage->setObject("object");
-      stage->setAngleDelta(M_PI / 12);
+      stage->setAngleDelta(M_PI * 2);
       stage->setMonitoredStage(current_state_ptr);  // Hook into current state
 
       // This is the transform from the object frame to the end-effector frame
