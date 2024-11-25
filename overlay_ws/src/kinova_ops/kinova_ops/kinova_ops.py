@@ -1,8 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CameraInfo
-from geometry_msgs.msg import PoseStamped
-from tf2_ros import TransformListener, Buffer
+from geometry_msgs.msg import PoseStamped, TransformStamped
+from tf2_ros import TransformListener, Buffer, TransformBroadcaster
 from tf_transformations import quaternion_matrix, quaternion_from_matrix
 import numpy as np
 import message_filters
@@ -25,9 +25,10 @@ class KinovaOps(Node):
         # Create TF2 buffer and listener for transformations
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.tf_broadcaster = TransformBroadcaster(self)
 
         # Timer to check for file disappearance
-        self.timer = self.create_timer(1.0, self.check_file_and_sync)
+        self.timer = self.create_timer(20.0, self.check_file_and_sync)
 
         # Synchronizer variable (will be initialized when file disappears)
         self.ts = None
@@ -134,8 +135,11 @@ class KinovaOps(Node):
             transformed_pose = self.transform_pose(grasp_pose)
             if transformed_pose:
                 self.publisher_.publish(transformed_pose)
+                self.broadcast_grasp_pose(transformed_pose)
+                # delete the prediction file
+                os.remove(grasp_file_path)
                 self.get_logger().info(f"Transformed Pose: {transformed_pose}")
-                save_transformed_pose_to_file(transformed_pose, '/root/ws/kinova_repos/kinova-transfer/transformed_pose.json')
+                # save_transformed_pose_to_file(transformed_pose, '/root/ws/kinova_repos/kinova-transfer/transformed_pose.json')
 
         except Exception as e:
             self.get_logger().error(f"Error processing grasp: {str(e)}")
@@ -167,7 +171,14 @@ class KinovaOps(Node):
                                          pose.pose.orientation.z, pose.pose.orientation.w])
         pose_matrix[0:3, 3] = [pose.pose.position.x, pose.pose.position.y, pose.pose.position.z]
 
-        transformed_matrix = transform_matrix @ pose_matrix
+        eef_offset_matrix = np.array([
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0.1],
+            [0, 0, 0, 1]
+        ])
+
+        transformed_matrix = transform_matrix @ pose_matrix @ eef_offset_matrix
 
         transformed_pose = PoseStamped()
         transformed_pose.header.frame_id = 'base_link'
@@ -180,37 +191,55 @@ class KinovaOps(Node):
 
         return transformed_pose
 
-def pose_stamped_to_dict(pose_stamped):
-    """Convert a PoseStamped message to a dictionary for saving."""
-    return {
-        'header': {
-            'frame_id': pose_stamped.header.frame_id,
-            'stamp': {
-                'sec': pose_stamped.header.stamp.sec,
-                'nanosec': pose_stamped.header.stamp.nanosec,
-            },
-        },
-        'pose': {
-            'position': {
-                'x': pose_stamped.pose.position.x,
-                'y': pose_stamped.pose.position.y,
-                'z': pose_stamped.pose.position.z,
-            },
-            'orientation': {
-                'x': pose_stamped.pose.orientation.x,
-                'y': pose_stamped.pose.orientation.y,
-                'z': pose_stamped.pose.orientation.z,
-                'w': pose_stamped.pose.orientation.w,
-            },
-        }
-    }
+    def broadcast_grasp_pose(self, transformed_pose):
+        t = TransformStamped()
 
-def save_transformed_pose_to_file(transformed_pose, file_path):
-    """Save the transformed PoseStamped to a JSON file."""
-    pose_dict = pose_stamped_to_dict(transformed_pose)
-    with open(file_path, 'w') as json_file:
-        json.dump(pose_dict, json_file)
-    print(f"Transformed pose saved to {file_path}")
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = 'base_link'
+        t.child_frame_id = 'grasp_pose'
+
+        t.transform.translation.x = transformed_pose.pose.position.x
+        t.transform.translation.y = transformed_pose.pose.position.y
+        t.transform.translation.z = transformed_pose.pose.position.z
+
+        t.transform.rotation.x = transformed_pose.pose.orientation.x
+        t.transform.rotation.y = transformed_pose.pose.orientation.y
+        t.transform.rotation.z = transformed_pose.pose.orientation.z
+        t.transform.rotation.w = transformed_pose.pose.orientation.w
+
+        self.tf_broadcaster.sendTransform(t)
+        
+# def pose_stamped_to_dict(pose_stamped):
+#     """Convert a PoseStamped message to a dictionary for saving."""
+#     return {
+#         'header': {
+#             'frame_id': pose_stamped.header.frame_id,
+#             'stamp': {
+#                 'sec': pose_stamped.header.stamp.sec,
+#                 'nanosec': pose_stamped.header.stamp.nanosec,
+#             },
+#         },
+#         'pose': {
+#             'position': {
+#                 'x': pose_stamped.pose.position.x,
+#                 'y': pose_stamped.pose.position.y,
+#                 'z': pose_stamped.pose.position.z,
+#             },
+#             'orientation': {
+#                 'x': pose_stamped.pose.orientation.x,
+#                 'y': pose_stamped.pose.orientation.y,
+#                 'z': pose_stamped.pose.orientation.z,
+#                 'w': pose_stamped.pose.orientation.w,
+#             },
+#         }
+#     }
+
+# def save_transformed_pose_to_file(transformed_pose, file_path):
+#     """Save the transformed PoseStamped to a JSON file."""
+#     pose_dict = pose_stamped_to_dict(transformed_pose)
+#     with open(file_path, 'w') as json_file:
+#         json.dump(pose_dict, json_file)
+#     print(f"Transformed pose saved to {file_path}")
 
 def main(args=None):
     rclpy.init(args=args)

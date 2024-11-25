@@ -73,14 +73,36 @@ void MTCTaskNode::setupPlanningScene()
   object.primitives[0].dimensions = { 0.05, 0.02 };
 
   geometry_msgs::msg::Pose pose;
-  pose.position.x = 0.5;
-  pose.position.y = 0;
-  pose.position.z = 0.25;
-  pose.orientation.w = 1.0;
+  pose.position.x = current_grasp_pose_.pose.position.x;
+  pose.position.y = current_grasp_pose_.pose.position.y;
+  pose.position.z = current_grasp_pose_.pose.position.z;
+  pose.orientation.x = current_grasp_pose_.pose.orientation.x;
+  pose.orientation.y = current_grasp_pose_.pose.orientation.y;
+  pose.orientation.z = current_grasp_pose_.pose.orientation.z;
+  pose.orientation.w = current_grasp_pose_.pose.orientation.w;
   object.pose = pose;
 
   moveit::planning_interface::PlanningSceneInterface psi;
   psi.applyCollisionObject(object);
+
+  moveit_msgs::msg::CollisionObject table;
+  table.id = "table";
+  table.header.frame_id = "world";
+  table.primitives.resize(1);
+  table.primitives[0].type = shape_msgs::msg::SolidPrimitive::BOX;
+  table.primitives[0].dimensions = { 1.5, 1.5, 0.01 };
+
+  geometry_msgs::msg::Pose table_pose;
+  table_pose.position.x = 0.0;
+  table_pose.position.y = 0.0;
+  table_pose.position.z = -0.04;
+  table_pose.orientation.x = 0.0;
+  table_pose.orientation.y = 0.0;
+  table_pose.orientation.z = 0.0;
+  table_pose.orientation.w = 1.0;
+  table.pose = table_pose;
+
+  psi.applyCollisionObject(table);
 }
 
 void MTCTaskNode::doTask()
@@ -120,8 +142,8 @@ void MTCTaskNode::doTask()
     return;
   }
 
-  task_.reset();
-  task_.introspection().reset();
+  // task_.reset();
+  // task_.introspection().reset();
 
   return;
 }
@@ -152,14 +174,29 @@ mtc::Task MTCTaskNode::createTask()
   task.add(std::move(stage_state_current));
 
   auto sampling_planner = std::make_shared<mtc::solvers::PipelinePlanner>(node_);
-  sampling_planner->setMaxVelocityScalingFactor(1.0);
-  sampling_planner->setMaxAccelerationScalingFactor(1.0);
+  sampling_planner->setMaxVelocityScalingFactor(0.1);
+  sampling_planner->setMaxAccelerationScalingFactor(0.1);
   auto interpolation_planner = std::make_shared<mtc::solvers::JointInterpolationPlanner>();
 
   auto cartesian_planner = std::make_shared<mtc::solvers::CartesianPath>();
-  cartesian_planner->setMaxVelocityScalingFactor(1.0);
-  cartesian_planner->setMaxAccelerationScalingFactor(1.0);
+  cartesian_planner->setMaxVelocityScalingFactor(0.1);
+  cartesian_planner->setMaxAccelerationScalingFactor(0.1);
   cartesian_planner->setStepSize(.01);
+
+  auto stage = std::make_unique<mtc::stages::MoveTo>("start at observation", sampling_planner);
+  stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
+  // Define the joint values for the target pose
+  std::map<std::string, double> joint_values = {
+      {"joint_1", 0.0},
+      {"joint_2", -0.7449},
+      {"joint_3", -3.15353},
+      {"joint_4", -1.9464},
+      {"joint_5", 0.00588},
+      {"joint_6", -1.3384},
+      {"joint_7", 1.55037}
+  };
+  stage->setGoal(joint_values);
+  task.add(std::move(stage));
 
   auto stage_open_hand =
       std::make_unique<mtc::stages::MoveTo>("open hand", sampling_planner);
@@ -170,7 +207,7 @@ mtc::Task MTCTaskNode::createTask()
   auto stage_move_to_pick = std::make_unique<mtc::stages::Connect>(
       "move to pick",
       mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, sampling_planner } });
-  stage_move_to_pick->setTimeout(5.0);
+  stage_move_to_pick->setTimeout(10.0);
   stage_move_to_pick->properties().configureInitFrom(mtc::Stage::PARENT);
   task.add(std::move(stage_move_to_pick));
 
@@ -218,22 +255,12 @@ mtc::Task MTCTaskNode::createTask()
 
       // This is the transform from the object frame to the end-effector frame
       Eigen::Isometry3d grasp_frame_transform;
-
-      // Extract position from current_grasp_pose_
-      grasp_frame_transform.translation().x() = current_grasp_pose_.pose.position.x;
-      grasp_frame_transform.translation().y() = current_grasp_pose_.pose.position.y;
-      grasp_frame_transform.translation().z() = current_grasp_pose_.pose.position.z;
-
-      // Extract orientation from current_grasp_pose_
-      Eigen::Quaterniond q(
-          current_grasp_pose_.pose.orientation.w,
-          current_grasp_pose_.pose.orientation.x,
-          current_grasp_pose_.pose.orientation.y,
-          current_grasp_pose_.pose.orientation.z
-      );
+      Eigen::Quaterniond q = Eigen::AngleAxisd(0.0 , Eigen::Vector3d::UnitX()) *
+                             Eigen::AngleAxisd(0.0 , Eigen::Vector3d::UnitY()) *
+                             Eigen::AngleAxisd(0.0 , Eigen::Vector3d::UnitZ());
       grasp_frame_transform.linear() = q.matrix();
       grasp_frame_transform.translation().z() = 0.15;
-
+      
       // Compute IK
       // clang-format off
       auto wrapper =
@@ -301,7 +328,7 @@ mtc::Task MTCTaskNode::createTask()
         mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, sampling_planner } });
                                                   // { hand_group_name, sampling_planner } });
     // clang-format on
-    stage_move_to_place->setTimeout(5.0);
+    stage_move_to_place->setTimeout(10.0);
     stage_move_to_place->properties().configureInitFrom(mtc::Stage::PARENT);
     // stage_move_to_place->restrictDirection(mtc::stages::MoveTo::FORWARD);
     task.add(std::move(stage_move_to_place));
@@ -326,9 +353,14 @@ mtc::Task MTCTaskNode::createTask()
       stage->setObject("object");
 
       geometry_msgs::msg::PoseStamped target_pose_msg;
-      target_pose_msg.header.frame_id = "object";
-      target_pose_msg.pose.position.y = 0.5;
-      target_pose_msg.pose.orientation.w = 1.0;
+      target_pose_msg.header.frame_id = "base_link";
+      target_pose_msg.pose.position.x = 0.3;
+      target_pose_msg.pose.position.y = 0.3;
+      target_pose_msg.pose.position.z = 0.2;
+      target_pose_msg.pose.orientation.x = 1.0;
+      target_pose_msg.pose.orientation.y = 0.0;
+      target_pose_msg.pose.orientation.z = 0.0;
+      target_pose_msg.pose.orientation.w = 0.0;
       stage->setPose(target_pose_msg);
       stage->setMonitoredStage(attach_object_stage);  // Hook into attach_object_stage
 
@@ -374,14 +406,14 @@ mtc::Task MTCTaskNode::createTask()
     {
       auto stage = std::make_unique<mtc::stages::MoveRelative>("retreat", cartesian_planner);
       stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
-      stage->setMinMaxDistance(0.1, 0.3);
+      stage->setMinMaxDistance(0.1, 0.2);
       stage->setIKFrame(hand_frame);
       stage->properties().set("marker_ns", "retreat");
 
       // Set retreat direction
       geometry_msgs::msg::Vector3Stamped vec;
       vec.header.frame_id = "world";
-      vec.vector.x = -0.5;
+      vec.vector.z = 1.0;
       stage->setDirection(vec);
       place->insert(std::move(stage));
     }
@@ -389,9 +421,19 @@ mtc::Task MTCTaskNode::createTask()
   }
 
   {
-    auto stage = std::make_unique<mtc::stages::MoveTo>("return home", sampling_planner);
+    auto stage = std::make_unique<mtc::stages::MoveTo>("return to observation", sampling_planner);
     stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
-    stage->setGoal("vertical");
+    // Define the joint values for the target pose
+    std::map<std::string, double> joint_values = {
+      {"joint_1", 0.0},
+      {"joint_2", -0.7449},
+      {"joint_3", -3.15353},
+      {"joint_4", -1.9464},
+      {"joint_5", 0.00588},
+      {"joint_6", -1.3384},
+      {"joint_7", 1.55037}
+    };
+    stage->setGoal(joint_values);
     task.add(std::move(stage));
   }
   return task;

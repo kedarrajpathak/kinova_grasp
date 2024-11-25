@@ -56,12 +56,12 @@ def launch_setup(context, *args, **kwargs):
         MoveItConfigsBuilder("gen3", package_name="kinova_gen3_7dof_robotiq_2f_85_moveit_config")
         .robot_description(mappings=launch_arguments)
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
-        .sensors_3d(
-            file_path=os.path.join(
-                get_package_share_directory("kinova_python"),
-                "config/sensors_3d.yaml",
-            )
-        )
+        # .sensors_3d(
+        #     file_path=os.path.join(
+        #         get_package_share_directory("kinova_python"),
+        #         "config/sensors_3d.yaml",
+        #     )
+        # )
         # .planning_scene_monitor(
         #     publish_robot_description=True, publish_robot_description_semantic=True
         # )
@@ -139,6 +139,15 @@ def launch_setup(context, *args, **kwargs):
         output="log",
         arguments=["--frame-id", "world", "--child-frame-id", "base_link"],
     )
+
+    # # Gripper Center TF
+    # gripper_center_tf = Node(
+    #     package="tf2_ros",
+    #     executable="static_transform_publisher",
+    #     name="gripper_center_tf",
+    #     output="log",
+    #     arguments=["0.0", "0.0", "0.145", "0.0", "0.0", "0.0", "end_effector_link", "TCP"],
+    # )
 
     # Publish TF
     robot_state_publisher = Node(
@@ -243,6 +252,7 @@ def launch_setup(context, *args, **kwargs):
         fault_controller_spawner,
         move_group_node,
         static_tf,
+        # gripper_center_tf,
         # example_file,
         # moveit_py_node,
         on_move_group_start_handler,
