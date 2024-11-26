@@ -14,7 +14,7 @@ echo "HOST_IP is set to: $HOST_IP"
 : "${RMW_IMPLEMENTATION:=rmw_cyclonedds_cpp}"
 echo "RMW_IMPLEMENTATION is set to: $RMW_IMPLEMENTATION"
 
-: "${USE_SIM_TIME:=True}"
+: "${USE_SIM_TIME:=False}"
 echo "USE_SIM_TIME is set to: $USE_SIM_TIME"
 
 CONTAINER_NAME_VISION="vision"
@@ -109,6 +109,35 @@ tmux send-keys -t $TMUX_SESSION_NAME "ssh -Y -t ${HOST_NAME}@${HOST_IP} \
 
 sleep 2
 
+# Run Kinova Grasp
+ping_test $HOST_IP
+tmux split-window -hf -t $TMUX_SESSION_NAME
+tmux send-keys -t $TMUX_SESSION_NAME "ssh -t ${HOST_NAME}@${HOST_IP} \
+	'${DOCKER_KILL_COMMAND_GRASP}; \
+    docker run \
+            -it \
+            --rm \
+            --net=host \
+            --pid=host \
+            --ipc=host \
+            --privileged \
+            --gpus all \
+            --runtime=nvidia \
+            -v /dev:/dev \
+            -v $HOME/.ros/log:/.ros/log \
+            -v /tmp/.X11-unix:/tmp/.X11-unix \
+            --env RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION} \
+            --env DISPLAY=$DISPLAY \
+		    --env USE_SIM_TIME=${USE_SIM_TIME} \
+            --name ${CONTAINER_NAME_GRASP} \
+            -v "$REPO_DIR:/kinova-ros2:rw" \
+            -v $PARENT_DIR:/root/ws/kinova_repos:rw \
+            -w /kinova-ros2 \
+            kinova_gen3_7dof:main \
+            /kinova-ros2/entrypoint_scripts/entrypoint_kinova_grasp.sh'" Enter
+
+sleep 2
+
 # Run Kinova operations
 # for debugging add "-v ${REPO_DIR}/overlay_ws/src/initial_pose_setter:/overlay_ws/src/initial_pose_setter \"
 ping_test $HOST_IP
@@ -139,63 +168,34 @@ tmux send-keys -t $TMUX_SESSION_NAME "ssh -Y -t ${HOST_NAME}@${HOST_IP} \
 
 sleep 2
 
-# Run Kinova Grasp
-ping_test $HOST_IP
-tmux split-window -hf -t $TMUX_SESSION_NAME
-tmux send-keys -t $TMUX_SESSION_NAME "ssh -t ${HOST_NAME}@${HOST_IP} \
-	'${DOCKER_KILL_COMMAND_GRASP}; \
-    docker run \
-            -it \
-            --rm \
-            --net=host \
-            --pid=host \
-            --ipc=host \
-            --privileged \
-            --gpus all \
-            --runtime=nvidia \
-            -v /dev:/dev \
-            -v $HOME/.ros/log:/.ros/log \
-            -v /tmp/.X11-unix:/tmp/.X11-unix \
-            --env RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION} \
-            --env DISPLAY=$DISPLAY \
-		    --env USE_SIM_TIME=${USE_SIM_TIME} \
-            --name ${CONTAINER_NAME_GRASP} \
-            -v "$REPO_DIR:/kinova-ros2:rw" \
-            -v $PARENT_DIR:/root/ws/kinova_repos:rw \
-            -w /kinova-ros2 \
-            kinova_gen3_7dof:main \
-            /kinova-ros2/entrypoint_scripts/entrypoint_kinova_grasp.sh'" Enter
+# # Run Grasp Pose Publisher
+# ping_test $HOST_IP
+# tmux split-window -hf -t $TMUX_SESSION_NAME
+# tmux send-keys -t $TMUX_SESSION_NAME "ssh -t ${HOST_NAME}@${HOST_IP} \
+# 	'${DOCKER_KILL_COMMAND_PY_PUBSUB}; \
+#     docker run \
+#             -it \
+#             --rm \
+#             --net=host \
+#             --pid=host \
+#             --ipc=host \
+#             --privileged \
+#             --gpus all \
+#             --runtime=nvidia \
+#             -v /dev:/dev \
+#             -v $HOME/.ros/log:/.ros/log \
+#             -v /tmp/.X11-unix:/tmp/.X11-unix \
+#             --env RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION} \
+#             --env DISPLAY=$DISPLAY \
+# 		    --env USE_SIM_TIME=${USE_SIM_TIME} \
+#             --name ${CONTAINER_NAME_PY_PUBSUB} \
+#             -v "$REPO_DIR:/kinova-ros2:rw" \
+#             -v $PARENT_DIR:/root/ws/kinova_repos:rw \
+#             -w /kinova-ros2 \
+#             kinova_gen3_7dof:main \
+#             /kinova-ros2/entrypoint_scripts/entrypoint_py_pubsub.sh'" Enter
 
-sleep 2
-
-# Run Grasp Pose Publisher
-ping_test $HOST_IP
-tmux split-window -hf -t $TMUX_SESSION_NAME
-tmux send-keys -t $TMUX_SESSION_NAME "ssh -t ${HOST_NAME}@${HOST_IP} \
-	'${DOCKER_KILL_COMMAND_PY_PUBSUB}; \
-    docker run \
-            -it \
-            --rm \
-            --net=host \
-            --pid=host \
-            --ipc=host \
-            --privileged \
-            --gpus all \
-            --runtime=nvidia \
-            -v /dev:/dev \
-            -v $HOME/.ros/log:/.ros/log \
-            -v /tmp/.X11-unix:/tmp/.X11-unix \
-            --env RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION} \
-            --env DISPLAY=$DISPLAY \
-		    --env USE_SIM_TIME=${USE_SIM_TIME} \
-            --name ${CONTAINER_NAME_PY_PUBSUB} \
-            -v "$REPO_DIR:/kinova-ros2:rw" \
-            -v $PARENT_DIR:/root/ws/kinova_repos:rw \
-            -w /kinova-ros2 \
-            kinova_gen3_7dof:main \
-            /kinova-ros2/entrypoint_scripts/entrypoint_py_pubsub.sh'" Enter
-
-sleep 2
+# sleep 2
 
 
 # Kill process terminal

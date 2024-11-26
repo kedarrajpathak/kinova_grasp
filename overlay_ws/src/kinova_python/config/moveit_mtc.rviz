@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded: ~
       Splitter Ratio: 0.5
-    Tree Height: 368
+    Tree Height: 156
   - Class: rviz_common/Help
     Name: Help
   - Class: rviz_common/Views
@@ -356,6 +356,9 @@ Visualization Manager:
       Markers:
         All at once?: false
         Value: true
+        approach_object: true
+        lift_object: true
+        retreat: true
       Name: Motion Planning Tasks
       Robot:
         Fixed Robot Color: 150; 50; 150
@@ -487,7 +490,7 @@ Visualization Manager:
       State Display Time: 0.05 s
       Task Solution Topic: /solution
       Tasks:
-        demo task: 0
+        demo task: 5
       Trail Step Size: 1
       Value: true
     - Acceleration_Scaling_Factor: 0.1
@@ -786,53 +789,53 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 5000
       Frames:
-        All Enabled: true
+        All Enabled: false
         base_link:
-          Value: true
+          Value: false
         bracelet_link:
-          Value: true
+          Value: false
         camera_color_frame:
-          Value: true
+          Value: false
         camera_depth_frame:
-          Value: true
+          Value: false
         camera_link:
-          Value: true
+          Value: false
         end_effector_link:
-          Value: true
+          Value: false
         forearm_link:
-          Value: true
+          Value: false
         grasp_pose:
           Value: true
         half_arm_1_link:
-          Value: true
+          Value: false
         half_arm_2_link:
-          Value: true
+          Value: false
         robotiq_85_base_link:
-          Value: true
+          Value: false
         robotiq_85_left_finger_link:
-          Value: true
+          Value: false
         robotiq_85_left_finger_tip_link:
-          Value: true
+          Value: false
         robotiq_85_left_inner_knuckle_link:
-          Value: true
+          Value: false
         robotiq_85_left_knuckle_link:
-          Value: true
+          Value: false
         robotiq_85_right_finger_link:
-          Value: true
+          Value: false
         robotiq_85_right_finger_tip_link:
-          Value: true
+          Value: false
         robotiq_85_right_inner_knuckle_link:
-          Value: true
+          Value: false
         robotiq_85_right_knuckle_link:
-          Value: true
+          Value: false
         shoulder_link:
-          Value: true
+          Value: false
         spherical_wrist_1_link:
-          Value: true
+          Value: false
         spherical_wrist_2_link:
-          Value: true
+          Value: false
         world:
-          Value: true
+          Value: false
       Marker Scale: 0.5
       Name: TF
       Show Arrows: true
@@ -890,25 +893,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 1.228022813796997
+      Distance: 3.2134485244750977
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.35266271233558655
-        Y: 0.16634052991867065
-        Z: 0.07138289511203766
+        X: 0.1782839298248291
+        Y: -0.04013022407889366
+        Z: 0.2682758569717407
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: -0.039999764412641525
+      Pitch: 0.4950000047683716
       Target Frame: world
       Value: Orbit (rviz_default_plugins)
-      Yaw: 0.6719977259635925
+      Yaw: 1.9669908285140991
     Saved: ~
 Window Geometry:
   Displays:
@@ -926,7 +929,7 @@ Window Geometry:
     collapsed: true
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000200000000000002b40000041afc020000000afb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000003f00fffffffb000000100044006900730070006c006100790073000000003b000001f1000000c700fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067000000019b000001dd0000016900fffffffb0000000800480065006c0070000000029a0000006e0000006e00fffffffb0000000a0056006900650077007300000002c500000190000000a000fffffffb000000120020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000003c004d006f00740069006f006e00200050006c0061006e006e0069006e00670020005400610073006b00730020002d00200053006c00690064006500720000000000ffffffff0000003f00fffffffb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000003f00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670000000232000002230000016900ffffff00000001000002000000041afc0200000001fb0000002a004d006f00740069006f006e00200050006c0061006e006e0069006e00670020005400610073006b0073010000003b0000041a000000e300ffffff0000057a0000041a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000200000000000002b40000041afc020000000afb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000003f00fffffffb000000100044006900730070006c006100790073000000003b0000011d000000c700fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067000000015e000001880000016900fffffffb0000000800480065006c0070000000029a0000006e0000006e00fffffffb0000000a0056006900650077007300000002c500000190000000a000fffffffb000000120020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000003c004d006f00740069006f006e00200050006c0061006e006e0069006e00670020005400610073006b00730020002d00200053006c00690064006500720000000000ffffffff0000003f00fffffffb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000003f00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006700000002ec000001690000016900ffffff00000001000002000000041afc0200000001fb0000002a004d006f00740069006f006e00200050006c0061006e006e0069006e00670020005400610073006b0073010000003b0000041a000000e300ffffff0000057a0000041a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1920

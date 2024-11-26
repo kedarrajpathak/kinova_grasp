@@ -20,8 +20,9 @@ from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
     RegisterEventHandler,
+    TimerAction,
 )
-from launch.event_handlers import OnProcessExit
+from launch.event_handlers import OnProcessStart, OnProcessExit
 from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
@@ -64,6 +65,17 @@ def launch_setup(context, *args, **kwargs):
         .to_moveit_configs()
     )
 
+    moveit_config.moveit_cpp.update({"use_sim_time": use_sim_time.perform(context) == "true"})
+
+    move_group_node = Node(
+        package="moveit_ros_move_group",
+        executable="move_group",
+        output="screen",
+        parameters=[
+            moveit_config.to_dict(),
+        ],
+    )
+
     example_file = DeclareLaunchArgument(
         "example_file",
         default_value="kinova_python.py",
@@ -78,15 +90,18 @@ def launch_setup(context, *args, **kwargs):
         parameters=[moveit_config.to_dict()],
     )
 
-    moveit_config.moveit_cpp.update({"use_sim_time": use_sim_time.perform(context) == "true"})
+    # Timer action to delay the start of pick_place
+    delayed_moveit_py_node = TimerAction(
+        period=7.0,  # Delay time in seconds
+        actions=[moveit_py_node]
+    )
 
-    move_group_node = Node(
-        package="moveit_ros_move_group",
-        executable="move_group",
-        output="screen",
-        parameters=[
-            moveit_config.to_dict(),
-        ],
+    # Register the event handler to trigger delayed_pick_place when move_group_node starts
+    on_move_group_start_handler = RegisterEventHandler(
+        OnProcessStart(
+            target_action=move_group_node,
+            on_start=[delayed_moveit_py_node]
+        )
     )
 
     # Static TF
@@ -202,7 +217,7 @@ def launch_setup(context, *args, **kwargs):
         move_group_node,
         static_tf,
         example_file,
-        moveit_py_node,
+        on_move_group_start_handler,
     ]
 
     return nodes_to_start

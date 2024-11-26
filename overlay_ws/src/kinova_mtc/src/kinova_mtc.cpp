@@ -70,7 +70,7 @@ void MTCTaskNode::setupPlanningScene()
   object.header.frame_id = "world";
   object.primitives.resize(1);
   object.primitives[0].type = shape_msgs::msg::SolidPrimitive::CYLINDER;
-  object.primitives[0].dimensions = { 0.05, 0.02 };
+  object.primitives[0].dimensions = { 0.02, 0.02 };
 
   geometry_msgs::msg::Pose pose;
   pose.position.x = current_grasp_pose_.pose.position.x;
@@ -173,26 +173,32 @@ mtc::Task MTCTaskNode::createTask()
   current_state_ptr = stage_state_current.get();
   task.add(std::move(stage_state_current));
 
+  const double max_velocity_scaling_factor = 0.2;
+  const double max_acceleration_scaling_factor = 0.2;
+
   auto sampling_planner = std::make_shared<mtc::solvers::PipelinePlanner>(node_);
-  sampling_planner->setMaxVelocityScalingFactor(0.1);
-  sampling_planner->setMaxAccelerationScalingFactor(0.1);
+  sampling_planner->setMaxVelocityScalingFactor(max_velocity_scaling_factor);
+  sampling_planner->setMaxAccelerationScalingFactor(max_acceleration_scaling_factor);
+
   auto interpolation_planner = std::make_shared<mtc::solvers::JointInterpolationPlanner>();
+  interpolation_planner->setMaxVelocityScalingFactor(max_velocity_scaling_factor);
+  interpolation_planner->setMaxAccelerationScalingFactor(max_acceleration_scaling_factor);
 
   auto cartesian_planner = std::make_shared<mtc::solvers::CartesianPath>();
-  cartesian_planner->setMaxVelocityScalingFactor(0.1);
-  cartesian_planner->setMaxAccelerationScalingFactor(0.1);
+  cartesian_planner->setMaxVelocityScalingFactor(max_velocity_scaling_factor);
+  cartesian_planner->setMaxAccelerationScalingFactor(max_acceleration_scaling_factor);
   cartesian_planner->setStepSize(.01);
 
-  auto stage = std::make_unique<mtc::stages::MoveTo>("start at observation", sampling_planner);
+  auto stage = std::make_unique<mtc::stages::MoveTo>("start at observation", interpolation_planner);
   stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
   // Define the joint values for the target pose
   std::map<std::string, double> joint_values = {
       {"joint_1", 0.0},
-      {"joint_2", -0.7449},
+      {"joint_2", -0.9443},
       {"joint_3", -3.15353},
-      {"joint_4", -1.9464},
+      {"joint_4", -2.1302},
       {"joint_5", 0.00588},
-      {"joint_6", -1.3384},
+      {"joint_6", -1.2077},
       {"joint_7", 1.55037}
   };
   stage->setGoal(joint_values);
@@ -206,7 +212,7 @@ mtc::Task MTCTaskNode::createTask()
 
   auto stage_move_to_pick = std::make_unique<mtc::stages::Connect>(
       "move to pick",
-      mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, sampling_planner } });
+      mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, interpolation_planner } });
   stage_move_to_pick->setTimeout(10.0);
   stage_move_to_pick->properties().configureInitFrom(mtc::Stage::PARENT);
   task.add(std::move(stage_move_to_pick));
@@ -325,7 +331,7 @@ mtc::Task MTCTaskNode::createTask()
     // clang-format off
     auto stage_move_to_place = std::make_unique<mtc::stages::Connect>(
         "move to place",
-        mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, sampling_planner } });
+        mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, interpolation_planner } });
                                                   // { hand_group_name, sampling_planner } });
     // clang-format on
     stage_move_to_place->setTimeout(10.0);
@@ -354,9 +360,9 @@ mtc::Task MTCTaskNode::createTask()
 
       geometry_msgs::msg::PoseStamped target_pose_msg;
       target_pose_msg.header.frame_id = "base_link";
-      target_pose_msg.pose.position.x = 0.3;
-      target_pose_msg.pose.position.y = 0.3;
-      target_pose_msg.pose.position.z = 0.2;
+      target_pose_msg.pose.position.x = 0.08;
+      target_pose_msg.pose.position.y = 0.35;
+      target_pose_msg.pose.position.z = 0.25;
       target_pose_msg.pose.orientation.x = 1.0;
       target_pose_msg.pose.orientation.y = 0.0;
       target_pose_msg.pose.orientation.z = 0.0;
@@ -421,16 +427,16 @@ mtc::Task MTCTaskNode::createTask()
   }
 
   {
-    auto stage = std::make_unique<mtc::stages::MoveTo>("return to observation", sampling_planner);
+    auto stage = std::make_unique<mtc::stages::MoveTo>("return to observation", interpolation_planner);
     stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
     // Define the joint values for the target pose
     std::map<std::string, double> joint_values = {
       {"joint_1", 0.0},
-      {"joint_2", -0.7449},
+      {"joint_2", -0.9443},
       {"joint_3", -3.15353},
-      {"joint_4", -1.9464},
+      {"joint_4", -2.1302},
       {"joint_5", 0.00588},
-      {"joint_6", -1.3384},
+      {"joint_6", -1.2077},
       {"joint_7", 1.55037}
     };
     stage->setGoal(joint_values);
