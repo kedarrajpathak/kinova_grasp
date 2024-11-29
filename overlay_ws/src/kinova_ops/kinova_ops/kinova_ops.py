@@ -18,8 +18,7 @@ class KinovaOps(Node):
         # Initialize message filter subscribers without synchronization
         self.color_image_sub = message_filters.Subscriber(self, Image, '/camera/color/image_raw')
         self.depth_registered_image_sub = message_filters.Subscriber(self, Image, '/camera/depth_registered/image_rect')
-        self.camera_info_sub = self.create_subscription(CameraInfo, '/camera/depth_registered/camera_info', 
-                                                        self.camera_info_callback, 10)
+        self.camera_info_sub = message_filters.Subscriber(self, CameraInfo, '/camera/depth_registered/camera_info')
         self.publisher_ = self.create_publisher(PoseStamped, '/grasp_pose', 10)
 
         # Create TF2 buffer and listener for transformations
@@ -28,7 +27,7 @@ class KinovaOps(Node):
         self.tf_broadcaster = TransformBroadcaster(self)
 
         # Timer to check for file disappearance
-        self.timer = self.create_timer(20.0, self.check_file_and_sync)
+        self.timer = self.create_timer(1.0, self.check_file_and_sync)
 
         # Synchronizer variable (will be initialized when file disappears)
         self.ts = None
@@ -48,7 +47,7 @@ class KinovaOps(Node):
             if self.ts is None:
                 self.get_logger().info("Prediction file not found, starting image synchronization.")
                 self.ts = message_filters.ApproximateTimeSynchronizer(
-                    [self.color_image_sub, self.depth_registered_image_sub], 10, 0.1
+                    [self.color_image_sub, self.depth_registered_image_sub, self.camera_info_sub], 10, 0.1
                 )
                 self.ts.registerCallback(self.image_callback)
         else:
@@ -56,11 +55,13 @@ class KinovaOps(Node):
                 self.get_logger().info("Prediction file found, stopping image synchronization.")
                 self.ts = None
 
-    def image_callback(self, color_msg, depth_msg):
+    def image_callback(self, color_msg, depth_msg, info_msg):
         """Process synchronized color and depth images and save as numpy."""
         color_image = self.image_msg_to_numpy(color_msg)
         depth_image = self.image_msg_to_numpy(depth_msg)
-
+        K = info_msg.k
+        self.camera_matrix = [K[0], K[1], K[2], K[3], K[4], K[5], K[6], K[7], K[8]]
+        
         if color_image.shape[:2] != depth_image.shape[:2]:
             self.get_logger().error('Color and depth images do not have matching sizes.')
             return

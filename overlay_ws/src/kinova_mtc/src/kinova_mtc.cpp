@@ -18,7 +18,7 @@
 #include <tf2_eigen/tf2_eigen.h>
 #endif
 
-static const rclcpp::Logger LOGGER = rclcpp::get_logger("mtc_tutorial");
+static const rclcpp::Logger LOGGER = rclcpp::get_logger("kinova_pick_place");
 namespace mtc = moveit::task_constructor;
 
 class MTCTaskNode
@@ -134,6 +134,7 @@ void MTCTaskNode::doTask()
   task_.introspection().publishSolution(*task_.solutions().front());
 
   auto result = task_.execute(*task_.solutions().front());
+  RCLCPP_ERROR_STREAM(LOGGER, result.val);
   if (result.val != moveit_msgs::msg::MoveItErrorCodes::SUCCESS)
   {
     // Log error message (print the error code)
@@ -187,7 +188,7 @@ mtc::Task MTCTaskNode::createTask()
   auto cartesian_planner = std::make_shared<mtc::solvers::CartesianPath>();
   cartesian_planner->setMaxVelocityScalingFactor(max_velocity_scaling_factor);
   cartesian_planner->setMaxAccelerationScalingFactor(max_acceleration_scaling_factor);
-  cartesian_planner->setStepSize(.01);
+  // cartesian_planner->setStepSize(.01);
 
   auto stage = std::make_unique<mtc::stages::MoveTo>("start at observation", interpolation_planner);
   stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
@@ -214,6 +215,20 @@ mtc::Task MTCTaskNode::createTask()
       "move to pick",
       mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, interpolation_planner } });
   stage_move_to_pick->setTimeout(10.0);
+
+  // Set Joint Constraints
+  moveit_msgs::msg::JointConstraint joint_constraint;
+  joint_constraint.joint_name = "joint_3";
+  joint_constraint.position = -3.15353;
+  joint_constraint.tolerance_above = 0.01;
+  joint_constraint.tolerance_below = 0.01;
+  joint_constraint.weight = 1.0;
+
+  moveit_msgs::msg::Constraints constraints;
+  constraints.joint_constraints.emplace_back(joint_constraint);
+
+  stage_move_to_pick->setPathConstraints(constraints);
+
   stage_move_to_pick->properties().configureInitFrom(mtc::Stage::PARENT);
   task.add(std::move(stage_move_to_pick));
 
@@ -272,7 +287,7 @@ mtc::Task MTCTaskNode::createTask()
       auto wrapper =
           std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
       // clang-format on
-      wrapper->setMaxIKSolutions(8);
+      wrapper->setMaxIKSolutions(10);
       wrapper->setMinSolutionDistance(1.0);
       wrapper->setIKFrame(grasp_frame_transform, hand_frame);
       wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
@@ -335,6 +350,20 @@ mtc::Task MTCTaskNode::createTask()
                                                   // { hand_group_name, sampling_planner } });
     // clang-format on
     stage_move_to_place->setTimeout(10.0);
+
+    // // Set Joint Constraints
+    // moveit_msgs::msg::JointConstraint joint_constraint;
+    // joint_constraint.joint_name = "joint_3";
+    // joint_constraint.position = -3.15353;
+    // joint_constraint.tolerance_above = 0.1;
+    // joint_constraint.tolerance_below = 0.1;
+    // joint_constraint.weight = 1.0;
+
+    // moveit_msgs::msg::Constraints constraints;
+    // constraints.joint_constraints.emplace_back(joint_constraint);
+
+    // stage_move_to_place->setPathConstraints(constraints);
+
     stage_move_to_place->properties().configureInitFrom(mtc::Stage::PARENT);
     // stage_move_to_place->restrictDirection(mtc::stages::MoveTo::FORWARD);
     task.add(std::move(stage_move_to_place));
@@ -375,7 +404,7 @@ mtc::Task MTCTaskNode::createTask()
       auto wrapper =
           std::make_unique<mtc::stages::ComputeIK>("place pose IK", std::move(stage));
       // clang-format on
-      wrapper->setMaxIKSolutions(2);
+      wrapper->setMaxIKSolutions(10);
       wrapper->setMinSolutionDistance(1.0);
       wrapper->setIKFrame("object");
       wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
