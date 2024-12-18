@@ -56,10 +56,15 @@ This branch of the repo is used to execute a pick-and-place task for a grasp pos
 
 1. Clone the Contact GraspNet repo in the parent directory
    ```sh
-   git clone https://git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/deep-learning/grasping-for-gg-cnn/contact-graspnet.git
+   git clone https://git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/deep-learning/grasping-for-gg-cnn/contact-graspnet.git --branch devel_kedar
    ```
 
-2. The file structure should look like the following. Create an additional empty folder to facilitate file transfer.
+2. Build the Docker Image
+   ```sh
+   bash docker_build.sh
+   ```
+
+3. The file structure should look like the following. Make an additional empty directory to facilitate file transfer.
     ```
     kinova
     ├── kinova-ros2
@@ -67,26 +72,21 @@ This branch of the repo is used to execute a pick-and-place task for a grasp pos
     ├── kinova-transfer
     ```
 
-3. Build the Docker Image
+4. Start the Docker container
    ```sh
-   bash docker_build.sh
+   bash docker_run/docker_run.sh
    ```
 
-4. Start the process that waits for the images to be saved in kinova-transfer folder then generates and saves grasps back in the same folder
+5. Start the process that waits for the images to be saved in kinova-transfer folder then generates and saves grasps back in the same folder
    ```sh
    bash watch_and_process.sh
    ```
 
 ### Known Issues and Workarounds
 
-If the moveit_example fails to execute then check the error messages on both the terminal windows one for the driver/gazebo and the other for the moveit. Those could be similar to one of the following:
-
-1. Deviation between actual robot start pose and start pose from trajectory being executed
-    - move the end effector a few centimeters using xbox controller and execute the script again
-2. Velocity/Acceleration values out of bound
-    - modify the scaling factors for velocity and acceleration in the moveit config files
-3. Load too heavy / max power
-    - try reducing the load first or move it closer to base (need to generate trajectories again for new pickup drop poses)
+1. The generated trajectories for the pick-and-place consitently put joint_6 to its limit, this causes low level safety check on the robot to 
+   stop the execution of the plan.
+2. The generated trajectories are not the shortest trajectories, they often follow a very long path.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
