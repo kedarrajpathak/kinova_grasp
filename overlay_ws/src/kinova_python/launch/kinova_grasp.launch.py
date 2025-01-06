@@ -51,25 +51,37 @@ def launch_setup(context, *args, **kwargs):
         "gripper_max_force": gripper_max_force,
         "use_internal_bus_gripper_comm": use_internal_bus_gripper_comm,
     }
+# Example:
+#     moveit_configs = MoveItConfigsBuilder("robot_name").to_moveit_configs()
+#     ...
+#     moveit_configs.package_path
+#     moveit_configs.robot_description
+#     moveit_configs.robot_description_semantic
+#     moveit_configs.robot_description_kinematics
+#     moveit_configs.planning_pipelines
+#     moveit_configs.trajectory_execution
+#     moveit_configs.planning_scene_monitor
+#     moveit_configs.sensors_3d
+#     moveit_configs.move_group_capabilities
+#     moveit_configs.joint_limits
+#     moveit_configs.moveit_cpp
+#     moveit_configs.pilz_cartesian_limits
+#     # Or to get all the parameters as a dictionary
+#     moveit_configs.to_dict()
 
     moveit_config = (
         MoveItConfigsBuilder("gen3", package_name="kinova_gen3_7dof_robotiq_2f_85_moveit_config")
         .robot_description(mappings=launch_arguments)
+        .robot_description_semantic(mappings=launch_arguments)
+        .robot_description_kinematics(mappings=launch_arguments)
+        .planning_pipelines(pipelines=["ompl", "pilz_industrial_motion_planner"])
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
-        # .sensors_3d(
-        #     file_path=os.path.join(
-        #         get_package_share_directory("kinova_python"),
-        #         "config/sensors_3d.yaml",
-        #     )
-        # )
-        # .planning_scene_monitor(
-        #     publish_robot_description=True, publish_robot_description_semantic=True
-        # )
-        # .planning_pipelines(pipelines=["ompl", "pilz_industrial_motion_planner"])
-        .moveit_cpp(
-            file_path=get_package_share_directory("kinova_python")
-            + "/config/kinova_python.yaml"
-        )        
+        .planning_scene_monitor(publish_robot_description=True, publish_robot_description_semantic=True)
+        .sensors_3d(file_path=os.path.join(get_package_share_directory("kinova_python"),"config/sensors_3d.yaml",))
+        .move_group_capabilities(mappings=launch_arguments)
+        .joint_limits(mappings=launch_arguments)
+        .moveit_cpp(file_path=get_package_share_directory("kinova_python")+ "/config/kinova_python.yaml")
+        .pilz_cartesian_limits()
         .to_moveit_configs()
     )
 
