@@ -23,7 +23,7 @@ RUN apt-get update && \
         wget && \
     apt-get update --fix-missing && \
     apt-get dist-upgrade && \
-    rosdep update -y
+    rosdep update --include-eol-distros -y
 
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     apt-get remove ros-$ROS_DISTRO-moveit*
@@ -59,7 +59,7 @@ COPY overlay_ws/src/ /overlay_ws/src/
 
 # Install module dependencies of overlay_ws
 WORKDIR /overlay_ws/
-RUN apt-get update && rosdep update
+RUN apt-get update && rosdep update --include-eol-distros -y
 RUN rosdep install --from-paths src --ignore-src -r -y
 
 # Source and build overlay_ws
