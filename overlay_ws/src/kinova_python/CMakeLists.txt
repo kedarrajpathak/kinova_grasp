@@ -15,4 +15,8 @@ install(PROGRAMS
 )
 install(DIRECTORY config launch
 	DESTINATION share/${PROJECT_NAME}
-	)
+)
+
+install(FILES .setup_assistant 
+  DESTINATION share/${PROJECT_NAME}
+)
