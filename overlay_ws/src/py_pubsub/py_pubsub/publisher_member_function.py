@@ -8,7 +8,7 @@ class MinimalPublisher(Node):
     def __init__(self):
         super().__init__('minimal_publisher')
         self.publisher_ = self.create_publisher(PoseStamped, '/grasp_pose', 10)
-        timer_period = 10  # seconds
+        timer_period = 40  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):

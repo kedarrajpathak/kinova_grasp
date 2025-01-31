@@ -3,7 +3,7 @@ planning_scene_monitor_options:
   publish_robot_description_semantic: true
   name: "planning_scene_monitor"
   robot_description: "robot_description"
-  joint_state_topic: "/joint_states"
+  joint_state_topic: "/isaac_joint_states"
   attached_collision_object_topic: "/moveit_cpp/planning_scene_monitor"
   publish_planning_scene_topic: "/moveit_cpp/publish_planning_scene"
   monitored_planning_scene_topic: "/moveit_cpp/monitored_planning_scene"

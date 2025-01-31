@@ -21,8 +21,8 @@ docker run \
 		--env RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION} \
 		--env DISPLAY=$DISPLAY \
         --name kinova_grasp \
-        -v "$REPO_DIR:/kinova-ros2:rw" \
+        -v "$REPO_DIR:/kinova-humble:rw" \
         -v $PARENT_DIR:/root/ws/kinova_repos:rw \
-        -w /kinova-ros2 \
-        kinova_gen3_7dof:main \
-        /kinova-ros2/entrypoint_scripts/entrypoint_kinova_grasp.sh
+        -w /kinova-humble \
+        kinova_gen3_7dof_humble:main \
+        /kinova-humble/entrypoint_scripts/entrypoint_kinova_grasp.sh

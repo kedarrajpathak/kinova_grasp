@@ -101,11 +101,11 @@ tmux send-keys -t $TMUX_SESSION_NAME "ssh -Y -t ${HOST_NAME}@${HOST_IP} \
             --env DISPLAY=$DISPLAY \
 		    --env USE_SIM_TIME=${USE_SIM_TIME} \
             --name ${CONTAINER_NAME_VISION} \
-            -v "$REPO_DIR:/kinova-ros2:rw" \
+            -v "$REPO_DIR:/kinova-humble:rw" \
             -v $PARENT_DIR:/root/ws/kinova_repos:rw \
-            -w /kinova-ros2 \
-            kinova_gen3_7dof:main \
-            /kinova-ros2/entrypoint_scripts/entrypoint_kinova_vision.sh'" Enter
+            -w /kinova-humble \
+            kinova_gen3_7dof_humble:main \
+            /kinova-humble/entrypoint_scripts/entrypoint_kinova_vision.sh'" Enter
 
 sleep 2
 
@@ -130,11 +130,11 @@ tmux send-keys -t $TMUX_SESSION_NAME "ssh -t ${HOST_NAME}@${HOST_IP} \
             --env DISPLAY=$DISPLAY \
 		    --env USE_SIM_TIME=${USE_SIM_TIME} \
             --name ${CONTAINER_NAME_GRASP} \
-            -v "$REPO_DIR:/kinova-ros2:rw" \
+            -v "$REPO_DIR:/kinova-humble:rw" \
             -v $PARENT_DIR:/root/ws/kinova_repos:rw \
-            -w /kinova-ros2 \
-            kinova_gen3_7dof:main \
-            /kinova-ros2/entrypoint_scripts/entrypoint_kinova_grasp.sh'" Enter
+            -w /kinova-humble \
+            kinova_gen3_7dof_humble:main \
+            /kinova-humble/entrypoint_scripts/entrypoint_kinova_grasp.sh'" Enter
 
 sleep 2
 
@@ -160,11 +160,11 @@ tmux send-keys -t $TMUX_SESSION_NAME "ssh -Y -t ${HOST_NAME}@${HOST_IP} \
             --env DISPLAY=$DISPLAY \
 		    --env USE_SIM_TIME=${USE_SIM_TIME} \
             --name ${CONTAINER_NAME_OPS} \
-            -v "$REPO_DIR:/kinova-ros2:rw" \
+            -v "$REPO_DIR:/kinova-humble:rw" \
             -v $PARENT_DIR:/root/ws/kinova_repos:rw \
-            -w /kinova-ros2 \
-            kinova_gen3_7dof:main \
-            /kinova-ros2/entrypoint_scripts/entrypoint_kinova_ops.sh'" Enter
+            -w /kinova-humble \
+            kinova_gen3_7dof_humble:main \
+            /kinova-humble/entrypoint_scripts/entrypoint_kinova_ops.sh'" Enter
 
 sleep 2
 
@@ -189,11 +189,11 @@ sleep 2
 #             --env DISPLAY=$DISPLAY \
 # 		    --env USE_SIM_TIME=${USE_SIM_TIME} \
 #             --name ${CONTAINER_NAME_PY_PUBSUB} \
-#             -v "$REPO_DIR:/kinova-ros2:rw" \
+#             -v "$REPO_DIR:/kinova-humble:rw" \
 #             -v $PARENT_DIR:/root/ws/kinova_repos:rw \
-#             -w /kinova-ros2 \
-#             kinova_gen3_7dof:main \
-#             /kinova-ros2/entrypoint_scripts/entrypoint_py_pubsub.sh'" Enter
+#             -w /kinova-humble \
+#             kinova_gen3_7dof_humble:main \
+#             /kinova-humble/entrypoint_scripts/entrypoint_py_pubsub.sh'" Enter
 
 # sleep 2
 

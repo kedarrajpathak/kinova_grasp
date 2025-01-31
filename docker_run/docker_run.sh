@@ -21,8 +21,8 @@ docker run \
 		--env RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION} \
 		--env DISPLAY=$DISPLAY \
         --name ros2-kortex \
-        -v "$REPO_DIR:/kinova-ros2:rw" \
+        -v "$REPO_DIR:/kinova-humble:rw" \
         -v $PARENT_DIR:/root/ws/kinova_repos:rw \
-        -w /kinova-ros2 \
-        kinova_gen3_7dof:main \
-        /kinova-ros2/entrypoint_scripts/entrypoint.sh
+        -w /kinova-humble \
+        kinova_gen3_7dof_humble:main \
+        /kinova-humble/entrypoint_scripts/entrypoint.sh

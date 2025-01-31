@@ -59,6 +59,7 @@ class KinovaOps(Node):
         """Process synchronized color and depth images and save as numpy."""
         color_image = self.image_msg_to_numpy(color_msg)
         depth_image = self.image_msg_to_numpy(depth_msg)
+        print(f"Depth Image stats: {np.min(depth_image)}, {np.max(depth_image)}")
         K = info_msg.k
         self.camera_matrix = [K[0], K[1], K[2], K[3], K[4], K[5], K[6], K[7], K[8]]
         
@@ -84,11 +85,14 @@ class KinovaOps(Node):
         height = msg.height
         width = msg.width
         encoding = msg.encoding
+        print(f"Image Encoding: {encoding}")
 
         if encoding == 'rgb8':
             np_array = np.frombuffer(msg.data, dtype=np.uint8).reshape((height, width, 3))
         elif encoding == 'mono16' or encoding == '16UC1':
             np_array = np.frombuffer(msg.data, dtype=np.uint16).reshape((height, width))
+        elif encoding == '32FC1':
+            np_array = np.frombuffer(msg.data, dtype=np.float32).reshape((height, width)) * 1000
         else:
             np_array = np.frombuffer(msg.data, dtype=np.uint8).reshape((height, width))
 

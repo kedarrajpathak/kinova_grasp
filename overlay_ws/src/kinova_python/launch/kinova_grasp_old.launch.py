@@ -62,10 +62,10 @@ def launch_setup(context, *args, **kwargs):
         #         "config/sensors_3d.yaml",
         #     )
         # )
-        # .planning_scene_monitor(
-        #     publish_robot_description=True, publish_robot_description_semantic=True
-        # )
-        # .planning_pipelines(pipelines=["ompl", "pilz_industrial_motion_planner"])
+        .planning_scene_monitor(
+            publish_robot_description=True, publish_robot_description_semantic=True
+        )
+        .planning_pipelines(pipelines=["ompl", "pilz_industrial_motion_planner"])
         .moveit_cpp(
             file_path=get_package_share_directory("kinova_python")
             + "/config/kinova_python.yaml"
@@ -94,7 +94,7 @@ def launch_setup(context, *args, **kwargs):
     #     parameters=[moveit_config.to_dict()],
     # )
 
-    moveit_config.moveit_cpp.update({"use_sim_time": use_sim_time.perform(context) == "true"})
+    moveit_config.moveit_cpp.update({"use_sim_time": use_sim_time.perform(context) == "false"})
 
     move_group_node = Node(
         package="moveit_ros_move_group",
