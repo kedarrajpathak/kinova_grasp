@@ -77,7 +77,7 @@ class KinovaOps(Node):
         self.get_logger().info('Saved RGB-D image (4 channels).')
 
         # Wait for the grasp prediction file to be created before processing
-        self.wait_for_file('/root/ws/kinova_repos/kinova-transfer/predictions_rgbd_image.npz', timeout=60)
+        self.wait_for_file('/root/ws/kinova_repos/kinova-transfer/predictions_rgbd_image.npz', timeout=10)
         self.process_grasp('/root/ws/kinova_repos/kinova-transfer/predictions_rgbd_image.npz')
 
     def image_msg_to_numpy(self, msg):
@@ -98,7 +98,7 @@ class KinovaOps(Node):
 
         return np_array
     
-    def wait_for_file(self, file_path, timeout=60):
+    def wait_for_file(self, file_path, timeout=10):
         """Wait for a file to be created, with a specified timeout."""
         start_time = time.time()
         while not os.path.exists(file_path):

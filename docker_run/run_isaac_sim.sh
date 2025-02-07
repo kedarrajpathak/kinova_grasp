@@ -2,6 +2,7 @@
 SCRIPT_DIR="$(dirname $(readlink -f $0))"
 REPO_DIR="$(realpath "${SCRIPT_DIR}/..")"
 PARENT_DIR="$(realpath "${SCRIPT_DIR}/../..")"
+GRANDPARENT_DIR="$(realpath "${SCRIPT_DIR}/../../..")"
 
 xhost +
 docker run --name isaac-sim --entrypoint bash -it --runtime=nvidia --gpus all -e "ACCEPT_EULA=Y" --rm --network=host --pid=host --ipc=host --privileged \
@@ -16,6 +17,6 @@ docker run --name isaac-sim --entrypoint bash -it --runtime=nvidia --gpus all -e
     -v ~/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw \
     -v ~/docker/isaac-sim/data:/root/.local/share/ov/data:rw \
     -v ~/docker/isaac-sim/documents:/root/Documents:rw \
-    -v $PARENT_DIR:/repos:rw \
+    -v $GRANDPARENT_DIR:/repos:rw \
     nvcr.io/nvidia/isaac-sim:4.2.0 \
-    /repos/kinova-humble/entrypoint_scripts/entrypoint_isaac_sim.sh 
+    /repos/kinova/kinova-humble/entrypoint_scripts/entrypoint_isaac_sim.sh 

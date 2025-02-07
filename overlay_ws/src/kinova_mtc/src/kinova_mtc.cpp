@@ -7,6 +7,7 @@
 #include <moveit/task_constructor/task.h>
 #include <moveit/task_constructor/solvers.h>
 #include <moveit/task_constructor/stages.h>
+#include "std_msgs/msg/string.hpp"
 #if __has_include(<tf2_geometry_msgs/tf2_geometry_msgs.hpp>)
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #else
@@ -37,6 +38,7 @@ private:
   mtc::Task createTask();
   mtc::Task task_;
   rclcpp::Node::SharedPtr node_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr task_execution_status_publisher_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr grasp_pose_subscriber_;
   geometry_msgs::msg::PoseStamped current_grasp_pose_;
 
@@ -48,6 +50,8 @@ MTCTaskNode::MTCTaskNode(const rclcpp::NodeOptions& options)
 {
   grasp_pose_subscriber_ = node_->create_subscription<geometry_msgs::msg::PoseStamped>(
     "/grasp_pose", 10, std::bind(&MTCTaskNode::graspPoseCallback, this, std::placeholders::_1));
+  task_execution_status_publisher_ = node_->create_publisher<std_msgs::msg::String>(
+    "mtc_task_execution_status", 10);
 
 }
 
@@ -135,6 +139,11 @@ void MTCTaskNode::doTask()
 
   auto result = task_.execute(*task_.solutions().front());
   RCLCPP_ERROR_STREAM(LOGGER, result.val);
+
+  std_msgs::msg::String status_msg;
+  status_msg.data = std::to_string(result.val);
+  task_execution_status_publisher_->publish(status_msg);
+
   if (result.val != moveit_msgs::msg::MoveItErrorCodes::SUCCESS)
   {
     // Log error message (print the error code)
@@ -174,10 +183,11 @@ mtc::Task MTCTaskNode::createTask()
   current_state_ptr = stage_state_current.get();
   task.add(std::move(stage_state_current));
 
-  const double max_velocity_scaling_factor = 0.2;
-  const double max_acceleration_scaling_factor = 0.2;
+  const double max_velocity_scaling_factor = 0.4;
+  const double max_acceleration_scaling_factor = 0.4;
 
   auto sampling_planner = std::make_shared<mtc::solvers::PipelinePlanner>(node_);
+  sampling_planner->setPlannerId("RRTstarkConfigDefault");
   sampling_planner->setMaxVelocityScalingFactor(max_velocity_scaling_factor);
   sampling_planner->setMaxAccelerationScalingFactor(max_acceleration_scaling_factor);
 
@@ -195,7 +205,7 @@ mtc::Task MTCTaskNode::createTask()
   // Define the joint values for the target pose
   std::map<std::string, double> joint_values = {
       {"joint_1", 0.0},
-      {"joint_2", -0.9443},
+      {"joint_2", -0.8650},
       {"joint_3", -3.15353},
       {"joint_4", -2.1302},
       {"joint_5", 0.00588},
@@ -214,20 +224,20 @@ mtc::Task MTCTaskNode::createTask()
   auto stage_move_to_pick = std::make_unique<mtc::stages::Connect>(
       "move to pick",
       mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, interpolation_planner } });
-  stage_move_to_pick->setTimeout(10.0);
+  stage_move_to_pick->setTimeout(60.0);
 
-  // Set Joint Constraints
-  moveit_msgs::msg::JointConstraint joint_constraint;
-  joint_constraint.joint_name = "joint_3";
-  joint_constraint.position = -3.15353;
-  joint_constraint.tolerance_above = 0.01;
-  joint_constraint.tolerance_below = 0.01;
-  joint_constraint.weight = 1.0;
+  // // Set Joint Constraints
+  // moveit_msgs::msg::JointConstraint joint_constraint;
+  // joint_constraint.joint_name = "joint_3";
+  // joint_constraint.position = -3.15353;
+  // joint_constraint.tolerance_above = 0.01;
+  // joint_constraint.tolerance_below = 0.01;
+  // joint_constraint.weight = 1.0;
 
-  moveit_msgs::msg::Constraints constraints;
-  constraints.joint_constraints.emplace_back(joint_constraint);
+  // moveit_msgs::msg::Constraints constraints;
+  // constraints.joint_constraints.emplace_back(joint_constraint);
 
-  stage_move_to_pick->setPathConstraints(constraints);
+  // stage_move_to_pick->setPathConstraints(constraints);
 
   stage_move_to_pick->properties().configureInitFrom(mtc::Stage::PARENT);
   task.add(std::move(stage_move_to_pick));
@@ -312,6 +322,7 @@ mtc::Task MTCTaskNode::createTask()
       auto stage = std::make_unique<mtc::stages::MoveTo>("close hand", sampling_planner);
       stage->setGroup(hand_group_name);
       stage->setGoal("Close");
+      stage->setTimeout(10.0);
       grasp->insert(std::move(stage));
     }
 
@@ -349,7 +360,7 @@ mtc::Task MTCTaskNode::createTask()
         mtc::stages::Connect::GroupPlannerVector{ { arm_group_name, interpolation_planner } });
                                                   // { hand_group_name, sampling_planner } });
     // clang-format on
-    stage_move_to_place->setTimeout(10.0);
+    stage_move_to_place->setTimeout(60.0);
 
     // // Set Joint Constraints
     // moveit_msgs::msg::JointConstraint joint_constraint;
@@ -416,6 +427,7 @@ mtc::Task MTCTaskNode::createTask()
       auto stage = std::make_unique<mtc::stages::MoveTo>("open hand", sampling_planner);
       stage->setGroup(hand_group_name);
       stage->setGoal("Open");
+      stage->setTimeout(10.0);
       place->insert(std::move(stage));
     }
 
@@ -461,7 +473,7 @@ mtc::Task MTCTaskNode::createTask()
     // Define the joint values for the target pose
     std::map<std::string, double> joint_values = {
       {"joint_1", 0.0},
-      {"joint_2", -0.9443},
+      {"joint_2", -0.8650},
       {"joint_3", -3.15353},
       {"joint_4", -2.1302},
       {"joint_5", 0.00588},

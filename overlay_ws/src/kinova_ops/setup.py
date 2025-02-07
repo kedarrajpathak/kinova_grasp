@@ -24,6 +24,8 @@ setup(
     entry_points={
         'console_scripts': [
             'kinova_ops = kinova_ops.kinova_ops:main',  # Entry point for the script
+            'kinova_ops2 = kinova_ops.kinova_ops2:main',  # Entry point for the script
+            'kinova_ops3 = kinova_ops.kinova_ops3:main',  # Entry point for the script
         ],
     },
 )
