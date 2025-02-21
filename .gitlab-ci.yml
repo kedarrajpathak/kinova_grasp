@@ -1,0 +1,54 @@
+.gitlab-ci.yml
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+stages:
+  - build
+  - registry_push
+  - registry_pull
+
+docker:build:
+  tags:
+    - hades
+  stage: build
+  script:
+    - docker build -t registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/ros2/kinova-ros2:$CI_COMMIT_BRANCH .
+
+git-ce:push:
+  tags:
+    - hades
+  stage: registry_push
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker push registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/ros2/kinova-ros2:$CI_COMMIT_BRANCH
+    - docker tag registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/ros2/kinova-ros2:$CI_COMMIT_BRANCH registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/ros2/kinova-ros2:latest
+    - docker push registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/ros2/kinova-ros2:latest
+
+hades:push:
+  tags:
+    - hades
+  stage: registry_push
+  
+  script:
+    - docker tag registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/ros2/kinova-ros2:$CI_COMMIT_BRANCH hades:5000/kinova-ros2:$CI_COMMIT_BRANCH
+    - docker tag registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/ros2/kinova-ros2:$CI_COMMIT_BRANCH hades:5000/kinova-ros2:latest
+    - docker push hades:5000/kinova-ros2:$CI_COMMIT_BRANCH
+    - docker push hades:5000/kinova-ros2:latest
+  
+#kairosAA:deploy:
+#  tags:
+#    - hades
+#  stage: registry_pull
+#  needs: ["hades:push"]
+#  script:
+#    - ssh -i /etc/docker/ssh/id_rsa -o "StrictHostKeyChecking no" kairos@$IP_kairosAA "docker pull hades:5000/kinova-ros2:$CI_COMMIT_BRANCH"
+#  allow_failure: true
+
+#kairosAB:deploy:
+#  tags:
+#    - hades
+#  stage: registry_pull
+#  needs: ["hades:push"]
+#  script:
+#    - ssh -i /etc/docker/ssh/id_rsa -o "StrictHostKeyChecking no" kairos@$IP_kairosAB "docker pull hades:5000/kinova-ros2:$CI_COMMIT_BRANCH"
+#  allow_failure: true
