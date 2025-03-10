@@ -8,3 +8,6 @@
 	path = colcon_ws/src/serial
 	url = https://github.com/tylerjw/serial.git
 	branch = ros2
+[submodule "colcon_ws/src/ros2_robotiq_gripper"]
+	path = colcon_ws/src/ros2_robotiq_gripper
+	url = https://github.com/PickNikRobotics/ros2_robotiq_gripper.git
