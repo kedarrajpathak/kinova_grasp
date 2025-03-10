@@ -1,0 +1,10 @@
+[submodule "colcon_ws/src/moveit_task_constructor"]
+	path = colcon_ws/src/moveit_task_constructor
+	url = https://github.com/moveit/moveit_task_constructor.git
+[submodule "colcon_ws/src/ros2_kortex_vision"]
+	path = colcon_ws/src/ros2_kortex_vision
+	url = https://github.com/PickNikRobotics/ros2_kortex_vision.git
+[submodule "colcon_ws/src/serial"]
+	path = colcon_ws/src/serial
+	url = https://github.com/tylerjw/serial.git
+	branch = ros2

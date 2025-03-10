@@ -42,7 +42,9 @@ RUN apt-get update && \
         ros-$ROS_DISTRO-ros2-controllers \
         ros-$ROS_DISTRO-topic-based-ros2-control \
         ros-$ROS_DISTRO-tf-transformations \
-        ros-$ROS_DISTRO-depth-image-proc 
+        ros-$ROS_DISTRO-depth-image-proc \
+        ros-$ROS_DISTRO-kortex-bringup \
+        ros-$ROS_DISTRO-kinova-gen3-7dof-robotiq-2f-85-moveit-config
 
 COPY colcon_ws/src/ /colcon_ws/src/
 WORKDIR /colcon_ws/
