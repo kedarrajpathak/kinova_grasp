@@ -2,6 +2,7 @@ ARG ROS_DISTRO=humble
 ARG RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 FROM osrf/ros:${ROS_DISTRO}-desktop
 ENV ROS_DISTRO=${ROS_DISTRO}
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
@@ -29,7 +30,7 @@ RUN apt-get update && \
         gstreamer1.0-plugins-good \
         gstreamer1.0-plugins-base && \
     apt-get update --fix-missing && \
-    apt-get dist-upgrade && \
+    apt-get dist-upgrade -y && \
     rosdep update -y
 
 RUN apt-get update && \
@@ -41,15 +42,6 @@ RUN apt-get update && \
         ros-$ROS_DISTRO-ros2-controllers \
         ros-$ROS_DISTRO-topic-based-ros2-control \
         ros-$ROS_DISTRO-tf-transformations \
-        # ros-$ROS_DISTRO-robotiq-controllers \
-        # ros-$ROS_DISTRO-robotiq-description \
-        # ros-$ROS_DISTRO-robotiq-driver \
-        # ros-$ROS_DISTRO-robotiq-hardware-tests \
-        # ros-$ROS_DISTRO-kortex-api \
-        # ros-$ROS_DISTRO-kortex-bringup \
-        # ros-$ROS_DISTRO-kortex-description \
-        # ros-$ROS_DISTRO-kortex-driver \
-        # ros-$ROS_DISTRO-kinova-gen3-7dof-robotiq-2f-85-moveit-config \
         ros-$ROS_DISTRO-depth-image-proc 
 
 COPY colcon_ws/src/ /colcon_ws/src/
